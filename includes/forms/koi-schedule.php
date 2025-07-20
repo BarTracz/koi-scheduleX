@@ -287,8 +287,6 @@ function schedule_edit_entry_form(): void
         echo '<thead><tr><th><input type="checkbox" id="select-all"></th><th>Streamer</th><th>Date</th><th>Time</th><th>Event</th><th>Actions</th></tr></thead>';
         echo '<tbody>';
         foreach ($entries as $entry) {
-            $date = esc_attr(date('Y-m-d', strtotime($entry->time)));
-            $time = esc_attr(date('H:i', strtotime($entry->time)));
             echo '<tr>';
             echo '<td><input type="checkbox" name="bulk_ids[]" value="' . esc_attr($entry->id) . '"></td>';
             echo '<td>';
@@ -299,11 +297,11 @@ function schedule_edit_entry_form(): void
             }
             echo '</select>';
             echo '</td>';
-            echo '<td><input type="date" name="date" value="' . $date . '" required></td>';
+            echo '<td><input type="date" name="date" value="' . esc_attr(date('Y-m-d', strtotime($entry->time))) . '" required></td>';
             echo '<td>
-                <input type="number" name="hour" min="0" max="23" value="' . esc_attr(date('H', strtotime($entry->time))) . '" required placeholder="hh">
+                <input type="number" class="koi-number-field" name="hour" min="0" max="23" value="' . esc_attr(date('H', strtotime($entry->time))) . '" required placeholder="hh">
                 :
-                <input type="number" name="minute" min="0" max="59" value="' . esc_attr(date('i', strtotime($entry->time))) . '" required placeholder="mm">
+                <input type="number" class="koi-number-field" name="minute" min="0" max="59" value="' . esc_attr(date('i', strtotime($entry->time))) . '" required placeholder="mm">
             </td>';
             echo '<td><select name="event_id">';
             foreach ($events as $event) {

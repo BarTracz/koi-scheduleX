@@ -323,3 +323,33 @@
 .koi-number-field {
     width: 50px;
 }
+
+.koi-subathons-list {
+    width: 100%;
+    max-width: none;
+    padding : 20px;
+    box-sizing: border-box;
+    text-align: center;
+    background: radial-gradient(circle, rgb(255, 255, 255) 0%, rgb(245, 245, 245) 100%);
+    border-radius: 8px;
+}
+
+.koi-subathons-list h2 {
+    text-align: center;
+}
+
+.koi-subathon-item {
+    text-align: center;
+}
+
+.koi-subathon-item,
+.koi-subathons-list iframe {
+    max-width: 100%;
+    display: block;
+    margin: 0 auto 20px auto;
+}
+
+.koi-subathon-item iframe {
+    display: block;
+    margin: 0 auto 20px auto;
+}

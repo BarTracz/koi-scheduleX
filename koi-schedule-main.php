@@ -3,7 +3,7 @@
 /**
  * Plugin Name: KoiSchedule
  * Description: A plugin to manage schedules for KoiCorp
- * Version: 0.4.0
+ * Version: 0.5.0
  * Author: KoiCorp
  */
 
@@ -23,16 +23,19 @@ define('KOI_EVENTS_TABLE_NAME', $wpdb->prefix . 'koi_events');
 require_once KOI_SCHEDULE_PATH . 'includes/db/koi-streamers-table.php';
 require_once KOI_SCHEDULE_PATH . 'includes/db/koi-events-table.php';
 require_once KOI_SCHEDULE_PATH . 'includes/db/koi-schedule-table.php';
+require_once KOI_SCHEDULE_PATH . 'includes/db/koi-subathons-table.php';
 
 require_once KOI_SCHEDULE_PATH . 'includes/koi-schedule-common.php';
 
 require_once KOI_SCHEDULE_PATH . 'includes/forms/koi-streamers.php';
 require_once KOI_SCHEDULE_PATH . 'includes/forms/koi-events.php';
 require_once KOI_SCHEDULE_PATH . 'includes/forms/koi-schedule.php';
+require_once KOI_SCHEDULE_PATH . 'includes/forms/koi-subathons.php';
 
 require_once KOI_SCHEDULE_PATH . 'includes/handlers/koi-streamers-handlers.php';
 require_once KOI_SCHEDULE_PATH . 'includes/handlers/koi-events-handlers.php';
 require_once KOI_SCHEDULE_PATH . 'includes/handlers/koi-schedule-handlers.php';
+require_once KOI_SCHEDULE_PATH . 'includes/handlers/koi-subathons-handlers.php';
 
 require_once KOI_SCHEDULE_PATH . 'includes/front-display/koi-schedule-front-display.php';
 
@@ -44,6 +47,7 @@ register_activation_hook(__FILE__, function () {
     create_koi_events_table();
     create_koi_schedule_table();
     update_koi_schedule_table();
+    create_koi_subathons_table();
     // Flush the output buffer to prevent any direct output.
     ob_end_clean();
 });

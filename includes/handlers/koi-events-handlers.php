@@ -107,7 +107,10 @@ function events_edit_entry_form_handler(): void
         if ($result !== false) {
             echo '<div class="updated"><p>' . esc_html__('Event deleted successfully', 'koi-events') . '</p></div>';
         } else {
-            echo '<div class="error"><p>' . esc_html__('Database error: ', 'koi-events') . esc_html($wpdb->last_error) . '</p></div>';
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Database error: ' . $wpdb->last_error);
+            }
+            echo '<div class="error"><p>' . esc_html__('Cannot delete event: there are entries linked to this event.', 'koi-events') . '</p></div>';
         }
     }
 }
