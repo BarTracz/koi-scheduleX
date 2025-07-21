@@ -185,6 +185,34 @@ function display_schedule(): false|string
 
     echo '</div>';
 
+    $subathons_table = $wpdb->prefix . 'koi_subathons';
+    $subathons = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT s.id, s.streamer_id, st.name AS streamer_name, s.start_date, s.timer_link, s.goals_link
+         FROM {$subathons_table} s
+         INNER JOIN {$streamers_table} st ON s.streamer_id = st.id
+         WHERE DATE(s.start_date) <= %s
+         ORDER BY s.start_date ASC",
+            $start_of_week
+        )
+    );
+
+    if (!empty($subathons)) {
+        echo '<div class="koi-subathons-list">';
+        echo '<h2>Subathony</h2>';
+        foreach ($subathons as $subathon) {
+            echo '<p>' . esc_html($subathon->streamer_name) . '</p>';
+            echo '<p>' . esc_html(date('Y.m.d', strtotime($subathon->start_date))) . ' ' . esc_html(date('H:i', strtotime($subathon->start_date))) . '</p>';
+            if (!empty($subathon->timer_link)) {
+                echo '<iframe src="' . esc_url($subathon->timer_link) . '" width="400" height="50" frameborder="0" allowfullscreen></iframe>';
+            }
+            if (!empty($subathon->goals_link)) {
+                echo '<iframe src="' . esc_url($subathon->goals_link) . '" width="600" height="100" frameborder="0" allowfullscreen></iframe>';
+            }
+        }
+        echo '</div>';
+    }
+
     // Schedule container
     echo '<div class="koi-schedule-container">';
 
