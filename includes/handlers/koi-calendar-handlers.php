@@ -102,7 +102,6 @@ function koi_calendar_form_handler(): void
 
     // If there are values to insert, execute the database query.
     if (!empty($insert_values)) {
-        // TODO: Replace `INSERT` with `INSERT ... ON DUPLICATE KEY UPDATE` or delete old entries before inserting.
         $query = "INSERT INTO $table_name (streamer_id, date, time_from, time_to, available, request) VALUES " . implode(', ', $placeholders);
         $wpdb->query($wpdb->prepare($query, $insert_values));
     }
