@@ -90,7 +90,7 @@ function koi_calendar_admin_page()
         // Handle edit/delete
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['calendar_action'])) {
             if (!current_user_can('manage_options')) {
-                wp_die('Brak uprawnień.');
+                wp_die('Insufficient permissions.');
             }
             if ($_POST['calendar_action'] === 'delete' && isset($_POST['entry_id'])) {
                 $wpdb->delete($calendar_table, ['id' => intval($_POST['entry_id'])]);
