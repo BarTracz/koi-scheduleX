@@ -1,35 +1,41 @@
 <?php
 
+// Don't allow direct access to this file.
 if (!defined('ABSPATH')) {
     exit;
 }
 
-function koi_calendar_admin_page()
+/**
+ * Renders the admin page for managing streamer calendars.
+ *
+ * @return void
+ */
+function koi_calendar_admin_page(): void
 {
     global $wpdb;
     $calendar_table = $wpdb->prefix . 'koi_calendar';
     $streamers_table = $wpdb->prefix . 'koi_streamers';
 
-    // Get all streamers
+    // Get all streamers to create tabs.
     $streamers = $wpdb->get_results("SELECT id, name FROM $streamers_table ORDER BY name ASC");
     $active_tab = isset($_GET['calendar_streamer_id']) ? intval($_GET['calendar_streamer_id']) : ($streamers[0]->id ?? 0);
     $show_all_tab = isset($_GET['calendar_show_all']);
 
     echo '<div class="wrap"><h1>Calendars</h1>';
-    // Tabs
+    // Display tabs for each streamer and an "All entries" tab.
     echo '<h2 class="nav-tab-wrapper">';
     foreach ($streamers as $streamer) {
         $active = ($active_tab == $streamer->id && !$show_all_tab) ? ' nav-tab-active' : '';
         $url = add_query_arg(['page' => 'koi_calendar_admin', 'calendar_streamer_id' => $streamer->id], admin_url('admin.php'));
         echo '<a href="' . esc_url($url) . '" class="nav-tab' . $active . '">' . esc_html($streamer->name) . '</a>';
     }
-    // Add "All entries" tab
+    // Add "All entries" tab.
     $all_tab_active = $show_all_tab ? ' nav-tab-active' : '';
     $all_tab_url = add_query_arg(['page' => 'koi_calendar_admin', 'calendar_show_all' => 1], admin_url('admin.php'));
     echo '<a href="' . esc_url($all_tab_url) . '" class="nav-tab' . $all_tab_active . '">All entries</a>';
     echo '</h2>';
 
-    // "All entries" tab
+    // Display the content for the "All entries" tab using FullCalendar.
     if ($show_all_tab) {
         $entries = $wpdb->get_results("SELECT c.*, s.name as streamer_name FROM $calendar_table c LEFT JOIN $streamers_table s ON c.streamer_id = s.id WHERE c.available = 1 ORDER BY c.date ASC, c.time_from ASC");
         $events = [];
@@ -86,8 +92,9 @@ function koi_calendar_admin_page()
         return;
     }
 
+    // Display the content for a specific streamer's tab.
     if ($active_tab) {
-        // Handle edit/delete
+        // Handle edit or delete actions on a calendar entry.
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['calendar_action'])) {
             if (!current_user_can('manage_options')) {
                 wp_die('Insufficient permissions.');
@@ -110,24 +117,25 @@ function koi_calendar_admin_page()
                     'available' => $available,
                     'request' => $request
                 ], ['id' => $id]);
-                echo '<div class="updated"><p>Wpis zaktualizowany.</p></div>';
+                echo '<div class="updated"><p>Entry updated.</p></div>';
             }
         }
 
-        // Get calendar entries for the selected streamer
+        // Get all calendar entries for the selected streamer.
         $entries = $wpdb->get_results($wpdb->prepare(
             "SELECT * FROM $calendar_table WHERE streamer_id = %d ORDER BY date ASC, time_from ASC",
             $active_tab
         ));
 
+        // Display the entries in a table with edit and delete options.
         echo '<table class="widefat striped"><thead>
             <tr>
-                <th>Data</th>
-                <th>Od</th>
-                <th>Do</th>
-                <th>Dostępny</th>
-                <th>Notatka</th>
-                <th>Akcje</th>
+                <th>Date</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Availability</th>
+                <th>Note</th>
+                <th>Action</th>
             </tr>
         </thead><tbody>';
         foreach ($entries as $entry) {
@@ -138,8 +146,8 @@ function koi_calendar_admin_page()
 				<td><input type="time" name="time_to" value="' . esc_attr(substr($entry->time_to, 0, 5)) . '"></td>
                 <td>
                     <select name="available">
-                        <option value="1"' . selected($entry->available, 1, false) . '>Tak</option>
-                        <option value="0"' . selected($entry->available, 0, false) . '>Nie</option>
+                        <option value="1"' . selected($entry->available, 1, false) . '>Yes</option>
+                        <option value="0"' . selected($entry->available, 0, false) . '>No</option>
                     </select>
                 </td>
                 <td><textarea class="koi-textarea" name="request">' . esc_textarea($entry->request) . '</textarea></td>
@@ -156,11 +164,11 @@ function koi_calendar_admin_page()
     echo '</div>';
 }
 
-// Add page to admin menu
+// Add the admin page to the WordPress admin menu.
 add_action('admin_menu', function () {
     add_menu_page(
-        'Koi calendars',
-        'Koi calendars',
+        'Koi Calendars',
+        'Koi Calendars',
         'manage_options',
         'koi_calendar_admin',
         'koi_calendar_admin_page',

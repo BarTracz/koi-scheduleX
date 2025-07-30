@@ -20,7 +20,8 @@ function display_calendar(): false|string
     $user = wp_get_current_user();
     $allowed_roles = ['contributor', 'administrator'];
     if (!array_intersect($allowed_roles, $user->roles)) {
-        return '<p>You do not have permission to view this page.</p>';
+        wp_safe_redirect(home_url());
+        exit;
     }
 
     global $wpdb;
@@ -35,8 +36,8 @@ function display_calendar(): false|string
         return '<p>No streamer profile associated with your user account.</p>';
     }
 
-    $month = isset($_GET['month']) ? intval($_GET['month']) : date('n');
-    $year  = isset($_GET['year']) ? intval($_GET['year']) : date('Y');
+    $month = isset($_GET['month']) ? intval($_GET['month']) : date('n', strtotime('+1 month'));
+    $year  = isset($_GET['year']) ? intval($_GET['year']) : date('Y', strtotime('+1 month'));
 
     $first_day_of_month = date('Y-m-d', mktime(0, 0, 0, $month, 1, $year));
     $last_day_of_month = date('Y-m-t', mktime(0, 0, 0, $month, 1, $year));
@@ -66,10 +67,26 @@ function display_calendar(): false|string
 
     ob_start();
 
-    if (isset($_GET['calendar_saved'])) {
-        echo '<div class="updated"><p>Availability saved!</p></div>';
+    $prev_month = $month - 1;
+    $prev_year = $year;
+    if ($prev_month == 0) {
+        $prev_month = 12;
+        $prev_year--;
+    }
+
+    $next_month = $month + 1;
+    $next_year = $year;
+    if ($next_month == 13) {
+        $next_month = 1;
+        $next_year++;
     }
     ?>
+<div class="koi-calendar-container">
+    <div class="koi-calendar-nav">
+        <a class="koi-schedule-date-arrow" href="<?php echo esc_url(add_query_arg(['month' => $prev_month, 'year' => $prev_year])); ?>"><span class="dashicons dashicons-arrow-left-alt2"></span></a>
+        <p class="koi-schedule-date-range"><?php echo date('F Y', mktime(0, 0, 0, $month, 1, $year)); ?></p>
+        <a class="koi-schedule-date-arrow" href="<?php echo esc_url(add_query_arg(['month' => $next_month, 'year' => $next_year])); ?>"><span class="dashicons dashicons-arrow-right-alt2"></span></a>
+    </div>
     <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" id="koi-calendar-form">
         <input type="hidden" name="action" value="koi_calendar_save">
         <input type="hidden" name="month" value="<?php echo esc_attr($month); ?>">
@@ -120,7 +137,6 @@ function display_calendar(): false|string
                     inputs.forEach(function(input) {
                         input.disabled = checkbox.checked;
                         if(checkbox.checked) {
-                            // Clear values when disabling
                             if (input.type === 'number' || input.type === 'textarea') {
                                 input.value = '';
                             }

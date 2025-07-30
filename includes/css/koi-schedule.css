@@ -50,6 +50,13 @@ TABLE OF CONTENTS
     margin-bottom: 0;
 }
 
+.koi-calendar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
 /* ==================================================
    2. Date Navigation
    ================================================== */
@@ -299,6 +306,15 @@ TABLE OF CONTENTS
     text-align: center;
     font-size: small;
     background: #ffffff;
+}
+
+.koi-calendar-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    padding: 10px;
+    margin-bottom: 20px;
 }
 
 .koi-schedule-calendars-row {
