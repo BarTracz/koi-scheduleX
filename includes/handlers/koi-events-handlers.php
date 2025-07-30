@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
  *
  * @return void
  */
-function events_entry_form_handler(): void
+function koi_events_form_handler(): void
 {
     if (isset($_POST['event_action']) && $_POST['event_action'] === 'add_event') {
         if (!isset($_POST['event_nonce_field']) || !wp_verify_nonce($_POST['event_nonce_field'], 'event_nonce_action')) {
@@ -54,7 +54,7 @@ function events_entry_form_handler(): void
  *
  * @return void
  */
-function events_edit_entry_form_handler(): void
+function koi_events_edit_form_handler(): void
 {
     global $wpdb;
     $events_table = $wpdb->prefix . 'koi_events';
@@ -116,5 +116,5 @@ function events_edit_entry_form_handler(): void
 }
 
 // Register the form handlers to the 'init' action hook.
-add_action('init', 'events_entry_form_handler');
-add_action('init', 'events_edit_entry_form_handler');
+add_action('init', 'koi_events_form_handler');
+add_action('init', 'koi_events_edit_form_handler');

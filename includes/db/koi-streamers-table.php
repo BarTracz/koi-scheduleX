@@ -33,3 +33,11 @@ function create_koi_streamers_table(): void
         error_log('Database Error: ' . $wpdb->last_error);
     }
 }
+
+function update_koi_streamers_table()
+{
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'koi_streamers';
+    $wpdb->query("ALTER TABLE $table_name ADD COLUMN user_id BIGINT(20) UNSIGNED DEFAULT NULL");
+    $wpdb->query("ALTER TABLE $table_name ADD CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES {$wpdb->users}(ID) ON DELETE SET NULL");
+}

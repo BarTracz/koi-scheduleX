@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
  *
  * @return void
  */
-function streamers_entry_form_handler(): void
+function koi_streamers_form_handler(): void
 {
     if (isset($_POST['streamer_action']) && $_POST['streamer_action'] === 'add_streamer') {
         if (!isset($_POST['streamer_nonce_field']) || !wp_verify_nonce($_POST['streamer_nonce_field'], 'streamer_nonce_action')) {
@@ -21,6 +21,7 @@ function streamers_entry_form_handler(): void
         }
 
         $name = sanitize_text_field($_POST['streamer_name']);
+        $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
         $link = esc_url_raw($_POST['streamer_link']);
         $avatar_url = esc_url_raw($_POST['streamer_avatar_url']);
 
@@ -39,10 +40,12 @@ function streamers_entry_form_handler(): void
 
         $wpdb->insert($table_name, [
             'name' => $name,
+            'user_id' => $user_id > 0 ? $user_id : null,
             'link' => $link,
             'avatar_url' => $avatar_url
         ], [
             '%s',
+            '%d',
             '%s',
             '%s'
         ]);
@@ -61,7 +64,7 @@ function streamers_entry_form_handler(): void
  *
  * @return void
  */
-function streamers_edit_entry_form_handler(): void
+function koi_streamers_edit_form_handler(): void
 {
     global $wpdb;
     $streamers_table = $wpdb->prefix . 'koi_streamers';
@@ -77,6 +80,7 @@ function streamers_edit_entry_form_handler(): void
 
         $streamer_id = intval($_POST['streamer_id']);
         $name = sanitize_text_field($_POST['name']);
+        $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
         $link = esc_url_raw($_POST['link']);
         $avatar_url = esc_url_raw($_POST['avatar_url']);
 
@@ -91,9 +95,9 @@ function streamers_edit_entry_form_handler(): void
 
         $result = $wpdb->update(
             $streamers_table,
-            ['name' => $name, 'link' => $link, 'avatar_url' => $avatar_url],
+            ['name' => $name, 'link' => $link, 'avatar_url' => $avatar_url, 'user_id' => $user_id > 0 ? $user_id : null],
             ['id' => $streamer_id],
-            ['%s', '%s', '%s'],
+            ['%s', '%s', '%s', '%d'],
             ['%d']
         );
 
@@ -125,5 +129,5 @@ function streamers_edit_entry_form_handler(): void
 }
 
 // Register the form handlers to the 'init' action hook.
-add_action('init', 'streamers_entry_form_handler');
-add_action('init', 'streamers_edit_entry_form_handler');
+add_action('init', 'koi_streamers_form_handler');
+add_action('init', 'koi_streamers_edit_form_handler');
