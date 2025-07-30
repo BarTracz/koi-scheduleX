@@ -15,13 +15,13 @@ function koi_calendar_form_handler()
     }
 
     if (!is_user_logged_in()) {
-        wp_die('Brak uprawnień.');
+        wp_die('Insufficient permissions.');
     }
 
     $user = wp_get_current_user();
     $allowed_roles = ['editor', 'administrator'];
     if (!array_intersect($allowed_roles, $user->roles)) {
-        wp_die('Brak uprawnień.');
+        wp_die('Insufficient permissions.');
     }
 
     global $wpdb;
