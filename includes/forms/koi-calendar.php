@@ -26,7 +26,7 @@ function koi_calendar_admin_page()
     // Add "All entries" tab
     $all_tab_active = $show_all_tab ? ' nav-tab-active' : '';
     $all_tab_url = add_query_arg(['page' => 'koi_calendar_admin', 'calendar_show_all' => 1], admin_url('admin.php'));
-    echo '<a href="' . esc_url($all_tab_url) . '" class="nav-tab' . $all_tab_active . '">Wszystkie wpisy</a>';
+    echo '<a href="' . esc_url($all_tab_url) . '" class="nav-tab' . $all_tab_active . '">All entries</a>';
     echo '</h2>';
 
     // "All entries" tab
