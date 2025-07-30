@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
  *
  * @return void
  */
-function subathons_entry_form_handler(): void
+function koi_subathons_form_handler(): void
 {
     if (isset($_POST['subathon_action']) && $_POST['subathon_action'] === 'add_subathon') {
         if (!isset($_POST['subathon_nonce_field']) || !wp_verify_nonce($_POST['subathon_nonce_field'], 'subathon_nonce_action')) {
@@ -63,7 +63,7 @@ function subathons_entry_form_handler(): void
  *
  * @return void
  */
-function subathons_edit_entry_form_handler(): void
+function koi_subathons_edit_form_handler(): void
 {
     global $wpdb;
     $subathons_table = $wpdb->prefix . 'koi_subathons';
@@ -129,5 +129,5 @@ function subathons_edit_entry_form_handler(): void
 }
 
 // Register the form handlers to the 'init' action hook.
-add_action('init', 'subathons_entry_form_handler');
-add_action('init', 'subathons_edit_entry_form_handler');
+add_action('init', 'koi_subathons_form_handler');
+add_action('init', 'koi_subathons_edit_form_handler');

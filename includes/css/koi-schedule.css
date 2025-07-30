@@ -1,9 +1,30 @@
-/* =========================
-   Koi Schedule Styles
-   ========================= */
+/*
+==================================================
+KOI SCHEDULE STYLESHEET
+==================================================
+
+TABLE OF CONTENTS
+--------------------------------------------------
+1.  Main Layout & Containers
+2.  Date Navigation
+3.  Schedule Day & Hour Structure
+4.  Streamer Information & Layout
+5.  Filtering Controls & Toolbar
+6.  Calendar Specific Styles
+7.  Subathon List
+8.  Generic UI Components (Forms, Buttons, Tooltips)
+9.  Empty State Placeholders
+10. Admin-Specific Styles
+11. Responsive Design
+==================================================
+*/
+
+/* ==================================================
+   1. Main Layout & Containers
+   ================================================== */
 .koi-schedule-container {
     background: radial-gradient(circle, rgb(255, 255, 255) 0%, rgb(245, 245, 245) 100%);
-    padding: 20px 20px 20px 20px;
+    padding: 20px;
     border-radius: 8px;
     min-width: 350px;
     max-width: 100%;
@@ -11,9 +32,27 @@
     margin-top: 20px;
 }
 
-/* =========================
-   Date Navigation
-   ========================= */
+.koi-schedule-week-columns {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.koi-schedule-week-column {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.koi-schedule-week-column:last-child {
+    margin-bottom: 0;
+}
+
+/* ==================================================
+   2. Date Navigation
+   ================================================== */
 .koi-schedule-date-navigation {
     display: flex;
     justify-content: space-between;
@@ -29,9 +68,8 @@
     color: #000000;
     text-align: center;
     font-size: 1.4em;
-    margin-bottom: 0;
-    margin-top: 0;
     font-weight: normal;
+    margin: 0;
     align-items: center;
 }
 
@@ -45,14 +83,15 @@
     display: flex;
     text-decoration: none;
 }
+
 .koi-schedule-date-arrow:focus {
     outline: none;
     box-shadow: none;
 }
 
-/* =========================
-   Day Section
-   ========================= */
+/* ==================================================
+   3. Schedule Day & Hour Structure
+   ================================================== */
 .koi-schedule-day {
     padding: 10px;
     margin-bottom: 20px;
@@ -79,9 +118,15 @@
     margin-right: 5px;
 }
 
-/* =========================
-   Time Slots
-   ========================= */
+.koi-schedule-hour {
+    font-size: 1.4em;
+    font-weight: normal;
+    color: #000000;
+    margin: 10px 0;
+    border-bottom: 1px solid #008cff;
+    padding-bottom: 4px;
+}
+
 .koi-schedule-time-slot {
     display: block;
 }
@@ -103,9 +148,25 @@
     vertical-align: middle;
 }
 
-/* =========================
-   Streamers
-   ========================= */
+/* ==================================================
+   4. Streamer Information & Layout
+   ================================================== */
+.koi-streamer-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.koi-streamer-row {
+    display: flex;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.koi-streamer-row:last-child {
+    margin-bottom: 0;
+}
+
 .koi-schedule-streamer {
     margin-right: 10px;
     width: 100%;
@@ -159,53 +220,16 @@
     color: #000000;
 }
 
-/* =========================
-   Streamer List and Rows
-   ========================= */
-.koi-streamer-list {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-}
-
-.koi-streamer-row {
-    display: flex;
-    width: 100%;
-    margin-bottom: 10px;
-}
-
-.koi-streamer-row:last-child {
-    margin-right: 0;
-    margin-bottom: 0;
-}
-
-.koi-schedule-no-streamers {
-    text-align: center;
-}
-
-/* =========================
-   Hours
-   ========================= */
-.koi-schedule-hour {
-    font-size: 1.4em;
-    font-weight: normal;
-    color: #000000;
-    margin-bottom: 10px;
-    margin-top: 10px;
-    border-bottom: 1px solid #008cff;
-    padding-bottom: 4px;
-}
-
-/* =========================
-   Filters Toolbar
-   ========================= */
+/* ==================================================
+   5. Filtering Controls & Toolbar
+   ================================================== */
 .koi-schedule-filters-toolbar {
     display: flex;
     flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
     gap: 20px;
     padding: 20px;
-    align-items: center;
-    flex-direction: column;
     min-width: 350px;
     max-width: 100%;
     background: radial-gradient(circle, rgb(255, 255, 255) 0%, rgb(245, 245, 245) 100%);
@@ -237,61 +261,236 @@
     min-width: 150px;
 }
 
-/* =========================
-   Week Columns
-   ========================= */
-.koi-schedule-week-columns {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-}
-.koi-schedule-week-column {
-    flex: 1 1 0;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 20px;
-}
-.koi-schedule-week-column:last-child {
-    margin-bottom: 0;
-}
-
-/* =========================
-   Responsiveness
-   ========================= */
-@media (max-width: 900px) {
-    .koi-schedule-week-columns {
-        flex-direction: column;
-        gap: 0;
-    }
-    .koi-schedule-week-column {
-        gap: 0;
-    }
-}
-
-/* =========================
-   Filter Button
-   ========================= */
 .koi-filter-button {
-    padding: 5px 10px 5px 10px;
+    padding: 5px 10px;
     background-color: #ffffff;
     border: 2px solid #008cff;
     border-radius: 8px;
     font-size: 0.8em;
     text-decoration: none;
 }
+
 .koi-filter-button.active {
     background-color: #008cff;
     color: #ffffff;
 }
+
 .koi-filter-button:focus {
     outline: none;
     box-shadow: none;
 }
 
-/* =========================
-   No Streams in Day
-   ========================= */
+/* ==================================================
+   6. Calendar Specific Styles
+   ================================================== */
+.koi-calendar {
+    margin: 5px;
+}
+
+.koi-calendar-table {
+    box-sizing: border-box;
+    border-collapse: collapse;
+}
+
+.koi-calendar-table th,
+.koi-calendar-table td {
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    text-align: center;
+    font-size: small;
+    background: #ffffff;
+}
+
+.koi-schedule-calendars-row {
+    display: flex;
+    width: 100%;
+    font-size: 0.8em;
+}
+
+.koi-calendar-dot {
+    color: #0073aa;
+    font-size: 18px;
+    vertical-align: middle;
+}
+
+.fc-daygrid-event-dot {
+    display: none;
+}
+
+/* ==================================================
+   7. Subathon List
+   ================================================== */
+.koi-subathons-list {
+    width: 100%;
+    max-width: none;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+    background: radial-gradient(circle, rgb(255, 255, 255) 0%, rgb(245, 245, 245) 100%);
+    border-radius: 8px;
+}
+
+.koi-subathons-list h2 {
+    text-align: center;
+}
+
+.koi-subathon-item {
+    text-align: center;
+    max-width: 100%;
+    display: block;
+    margin: 0 auto 20px auto;
+}
+
+.koi-subathon-item iframe,
+.koi-subathons-list iframe {
+    max-width: 100%;
+    display: block;
+    margin: 0 auto 20px auto;
+}
+
+/* ==================================================
+   8. Generic UI Components (Forms, Buttons, Tooltips)
+   ================================================== */
+/* Form Fields */
+.koi-number-field {
+    width: 50px;
+}
+
+.koi-front-number-field {
+    width: 30px;
+}
+
+.koi-textarea {
+    height: 40px;
+    width: 100%;
+    max-width: 100%;
+    overflow: auto;
+    resize: both;
+    box-sizing: border-box;
+}
+
+.koi-radio-block label {
+    display: block;
+}
+
+/* WordPress Button Styles */
+.button,
+.button-primary,
+.button-secondary {
+    display: inline-block;
+    text-decoration: none;
+    font-size: 13px;
+    line-height: 2.15384615; /* 28px */
+    min-height: 30px;
+    margin: 0;
+    padding: 0 10px;
+    cursor: pointer;
+    border-width: 1px;
+    border-style: solid;
+    -webkit-appearance: none;
+    border-radius: 3px;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+p .button {
+    vertical-align: baseline;
+}
+
+.button,
+.button-secondary {
+    color: #2271b1;
+    border-color: #2271b1;
+    background: #f6f7f7;
+    vertical-align: top;
+}
+
+.button:hover,
+.button-secondary:hover,
+.button:focus,
+.button-secondary:focus {
+    background: #f0f0f1;
+    border-color: #0a4b78;
+    color: #0a4b78;
+}
+
+.button:focus,
+.button-secondary:focus {
+    background: #f6f7f7;
+    border-color: #3582c4;
+    color: #0a4b78;
+    box-shadow: 0 0 0 1px #3582c4;
+    outline: 2px solid transparent;
+    outline-offset: 0;
+}
+
+.button:active,
+.button-secondary:active {
+    background: #f6f7f7;
+    border-color: #8c8f94;
+    box-shadow: none;
+}
+
+.button-primary {
+    background: #2271b1;
+    border-color: #2271b1;
+    color: #fff;
+    text-decoration: none;
+    text-shadow: none;
+}
+
+.button-primary:hover,
+.button-primary:focus {
+    background: #135e96;
+    border-color: #135e96;
+    color: #fff;
+}
+
+.button-primary:focus {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px #2271b1;
+}
+
+.button-primary:active {
+    background: #135e96;
+    border-color: #135e96;
+    box-shadow: none;
+    color: #fff;
+}
+
+/* Tooltip Styles */
+.tooltip {
+    pointer-events: auto;
+    z-index: 1080;
+}
+
+.tooltip.show {
+    opacity: 1 !important;
+}
+
+.tooltip-inner {
+    background-color: #343a40;
+    color: #fff;
+    font-size: 1.1em;
+    border-radius: 8px;
+    padding: 8px;
+    max-width: none !important;
+    width: auto !important;
+    white-space: pre-line;
+    display: inline-block;
+}
+
+.bs-tooltip-top .arrow::before,
+.bs-tooltip-auto[x-placement^="top"] .arrow::before {
+    border-top-color: #343a40 !important;
+}
+
+/* ==================================================
+   9. Empty State Placeholders
+   ================================================== */
+.koi-schedule-no-streamers {
+    text-align: center;
+}
+
 .koi-schedule-no-streams-day {
     text-align: center;
     color: #000000;
@@ -306,50 +505,27 @@
     margin: 0 auto;
 }
 
-/* =========================
-   Admin Filters
-   ========================= */
+/* ==================================================
+   10. Admin-Specific Styles
+   ================================================== */
 .koi-admin-filters {
-    align-items: center;
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 5px;
     margin-top: 10px;
 }
 
-/* =========================
-   Number Field
-   ========================= */
-.koi-number-field {
-    width: 50px;
-}
+/* ==================================================
+   11. Responsive Design
+   ================================================== */
+@media (max-width: 900px) {
+    .koi-schedule-week-columns {
+        flex-direction: column;
+        gap: 0;
+    }
 
-.koi-subathons-list {
-    width: 100%;
-    max-width: none;
-    padding : 20px;
-    box-sizing: border-box;
-    text-align: center;
-    background: radial-gradient(circle, rgb(255, 255, 255) 0%, rgb(245, 245, 245) 100%);
-    border-radius: 8px;
-}
-
-.koi-subathons-list h2 {
-    text-align: center;
-}
-
-.koi-subathon-item {
-    text-align: center;
-}
-
-.koi-subathon-item,
-.koi-subathons-list iframe {
-    max-width: 100%;
-    display: block;
-    margin: 0 auto 20px auto;
-}
-
-.koi-subathon-item iframe {
-    display: block;
-    margin: 0 auto 20px auto;
+    .koi-schedule-week-column {
+        gap: 0;
+    }
 }

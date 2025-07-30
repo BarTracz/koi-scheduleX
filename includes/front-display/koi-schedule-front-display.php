@@ -357,7 +357,7 @@ function column($day_name_pl, array $grouped_schedule, array $week_dates): void
     } else {
         // No streams for this day.
         echo '<div class="koi-schedule-no-streams-day">';
-        echo '<img class="koi-schedule-no-streams-day-img" src="' . esc_url(plugins_url('img/no-streams.png', __FILE__)) . '" alt="Brak streamów" />';
+        echo '<img class="koi-schedule-no-streams-day-img" src="' . esc_url(plugins_url('../img/no-streams.png', __FILE__)) . '" alt="Brak streamów" />';
         echo '<p class="koi-schedule-no-streams-day">Brak streamów</p>';
         echo '</div>';
     }

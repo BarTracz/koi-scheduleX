@@ -33,3 +33,24 @@ function create_koi_streamers_table(): void
         error_log('Database Error: ' . $wpdb->last_error);
     }
 }
+
+function update_koi_streamers_table()
+{
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'koi_streamers';
+
+    // Check if the 'user_id' column already exists
+    $column_exists = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s",
+            DB_NAME,
+            $table_name,
+            'user_id'
+        )
+    );
+
+    if (!$column_exists) {
+        $wpdb->query("ALTER TABLE $table_name ADD COLUMN user_id BIGINT(20) UNSIGNED DEFAULT NULL");
+        $wpdb->query("ALTER TABLE $table_name ADD CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES {$wpdb->users}(ID) ON DELETE SET NULL");
+    }
+}

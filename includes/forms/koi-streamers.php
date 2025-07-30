@@ -23,6 +23,12 @@ function streamers_entry_form(): false|string
                 <td><input type="text" id="streamer_name" name="streamer_name" required></td>
             </tr>
             <tr>
+                <th>User ID</th>
+            </tr>
+            <tr>
+                <td><input type="number" id="user_id" name="user_id" min="1"></td>
+            </tr>
+            <tr>
                 <th>Link</th>
             </tr>
             <tr>
@@ -62,7 +68,7 @@ function streamers_edit_entry_form(): void
     $total_items = $wpdb->get_var("SELECT COUNT(*) FROM $streamers_table");
 
     $streamers = $wpdb->get_results($wpdb->prepare("
-        SELECT id, name, link, avatar_url, created_at
+        SELECT id, user_id, name, link, avatar_url, created_at
         FROM $streamers_table
         LIMIT %d OFFSET %d
     ", $items_per_page, $offset));
@@ -72,12 +78,13 @@ function streamers_edit_entry_form(): void
 
     if ($streamers) {
         echo '<table class="wp-list-table widefat striped">';
-        echo '<thead><tr><th>Name</th><th>Link</th><th>Avatar</th><th>Actions</th></tr></thead>';
+        echo '<thead><tr><th>Name</th><th>User ID</th><th>Link</th><th>Avatar</th><th>Actions</th></tr></thead>';
         echo '<tbody>';
         foreach ($streamers as $streamer) {
             echo '<tr>';
             echo '<form method="post" action="">';
             echo '<td><input type="text" name="name" value="' . esc_attr($streamer->name) . '" required></td>';
+            echo '<td><input type="number" name="user_id" value="' . esc_attr($streamer->user_id) . '"></td>';
             echo '<td><input type="url" name="link" value="' . esc_attr($streamer->link) . '" required></td>';
             echo '<td><input type="url" name="avatar_url" value="' . esc_attr($streamer->avatar_url) . '"></td>';
             echo '<td>';
@@ -92,7 +99,7 @@ function streamers_edit_entry_form(): void
         echo '</tbody>';
         echo '</table>';
 
-        // Paginacja
+        // Pagination
         $total_pages = ceil($total_items / $items_per_page);
         echo '<div class="tablenav"><div class="tablenav-pages">';
         if ($current_page > 1) {

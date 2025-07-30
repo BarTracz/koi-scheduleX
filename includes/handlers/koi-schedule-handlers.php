@@ -6,262 +6,292 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Handles the form submission for adding a new schedule entry.
+ * Processes form submissions for adding, editing, and deleting schedule entries.
  *
  * @return void
  */
-function schedule_entry_form_handler(): void
+function koi_schedule_form_handler(): void
 {
     if (
-        isset($_POST['schedule_action']) && $_POST['schedule_action'] === 'add_schedule'
+        !isset($_POST['schedule_action']) &&
+        !isset($_POST['edit_schedule']) &&
+        !isset($_POST['delete_schedule'])
     ) {
-        if (
-            !isset($_POST['koi_schedule_nonce_field']) ||
-            !wp_verify_nonce($_POST['koi_schedule_nonce_field'], 'koi_schedule_nonce_action')
-        ) {
-            return;
-        }
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('No permissions.', 'koi-schedule'));
-        }
+        return;
+    }
 
-        $streamer_id = intval($_POST['streamer_id']);
-        $schedule_entries = $_POST['schedule_entries'];
+    if (
+        !isset($_POST['koi_schedule_nonce_field']) ||
+        !wp_verify_nonce($_POST['koi_schedule_nonce_field'], 'koi_schedule_nonce_action')
+    ) {
+        return;
+    }
+    if (!current_user_can('manage_options')) {
+        wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'koi-schedule'));
+    }
 
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'koi_schedule';
-        $success = false;
+    $action = $_POST['schedule_action'] ?? '';
 
-        foreach ($schedule_entries as $entry) {
-            $date = sanitize_text_field($entry['date']);
-            // Get the time from the radio button or custom input.
-            if (isset($entry['time_radio'])) {
-                if ($entry['time_radio'] === 'other') {
-                    $hour = isset($entry['hour']) ? intval($entry['hour']) : null;
-                    $minute = isset($entry['minute']) ? intval($entry['minute']) : null;
-                    if ($hour === null || $minute === null || $hour < 0 || $hour > 23 || $minute < 0 || $minute > 59) {
-                        echo '<div class="error"><p>' . esc_html__('Invalid hour or minute.', 'koi-schedule') . '</p></div>';
-                        continue;
-                    }
-                    $time = sprintf('%02d:%02d', $hour, $minute);
-                } else {
-                    $time = sanitize_text_field($entry['time_radio']);
-                }
-            } else {
-                $time = '00:00';
-            }
-            // Validate date and time format.
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || !preg_match('/^\d{2}:\d{2}$/', $time)) {
-                echo '<div class="error"><p>' . esc_html__('Invalid date/time format.', 'koi-schedule') . '</p></div>';
-                continue;
-            }
-
-            $datetime = $date . ' ' . $time;
-
-            $event_id = isset($entry['event_id']) ? intval($entry['event_id']) : null;
-            $wpdb->insert($table_name, array(
-                'time' => $datetime,
-                'streamer_id' => $streamer_id,
-                'event_id' => $event_id
-            ), array(
-                '%s',
-                '%d',
-                '%d'
-            ));
-            if ($wpdb->insert_id) {
-                $success = true;
-            }
-        }
-        if ($success) {
-            echo '<div class="updated"><p>' . esc_html__('Entry added successfully', 'koi-schedule') . '</p></div>';
-        } else {
-            error_log('Database Insert Error: ' . $wpdb->last_error);
-            echo '<div class="error"><p>' . esc_html__('Failed to add entry. Please try again.', 'koi-schedule') . '</p></div>';
-        }
+    if ($action === 'add_schedule') {
+        _koi_schedule_handle_add_schedule();
+    } elseif ($action === 'bulk_edit') {
+        _koi_schedule_handle_bulk_edit();
+    } elseif ($action === 'delete_older') {
+        _koi_schedule_handle_bulk_delete();
+    } elseif (isset($_POST['edit_schedule'])) {
+        _koi_schedule_handle_single_edit();
+    } elseif (isset($_POST['delete_schedule'])) {
+        _koi_schedule_handle_single_delete();
     }
 }
 
 /**
- * Handles the form submission for editing or deleting schedule entries.
+ * Handles adding new schedule entries.
  *
  * @return void
  */
-function schedule_edit_entry_form_handler(): void
+function _koi_schedule_handle_add_schedule(): void
 {
     global $wpdb;
-    $schedule_table = $wpdb->prefix . 'koi_schedule';
+    $table_name = $wpdb->prefix . 'koi_schedule';
+    $streamer_id = isset($_POST['streamer_id']) ? intval($_POST['streamer_id']) : 0;
+    $schedule_entries = isset($_POST['schedule_entries']) ? (array) $_POST['schedule_entries'] : [];
 
-    // Deleting older entries.
-    if (isset($_POST['schedule_action']) && $_POST['schedule_action'] === 'delete_older') {
-        if (
-            !isset($_POST['koi_schedule_nonce_field']) ||
-            !wp_verify_nonce($_POST['koi_schedule_nonce_field'], 'koi_schedule_nonce_action')
-        ) {
-            return;
-        }
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('No permissions.', 'koi-schedule'));
-        }
-
-        $delete_older_date = sanitize_text_field($_POST['delete_older_date']);
-        $delete_direction = isset($_POST['delete_direction']) ? $_POST['delete_direction'] : 'older';
-        $operator = $delete_direction === 'newer' ? '>' : '<';
-
-        if ($delete_older_date && preg_match('/^\d{4}-\d{2}-\d{2}$/', $delete_older_date)) {
-            $result = $wpdb->query($wpdb->prepare(
-                "DELETE FROM $schedule_table WHERE time $operator %s",
-                $delete_older_date . ' 00:00:00'
-            ));
-            if ($result !== false) {
-                $msg = $delete_direction === 'newer'
-                    ? esc_html__('Entries newer than ', 'koi-schedule')
-                    : esc_html__('Entries older than ', 'koi-schedule');
-                echo '<div class="updated"><p>' . $msg . esc_html($delete_older_date) . esc_html__(' deleted successfully', 'koi-schedule') . '</p></div>';
-            } else {
-                echo '<div class="error"><p>' . esc_html__('Database error: ', 'koi-schedule') . esc_html($wpdb->last_error) . '</p></div>';
-            }
-        } else {
-            echo '<div class="error"><p>' . esc_html__('Please select a valid date.', 'koi-schedule') . '</p></div>';
-        }
+    if (empty($streamer_id) || empty($schedule_entries)) {
+        echo '<div class="error"><p>' . esc_html__('Missing required fields.', 'koi-schedule') . '</p></div>';
+        return;
     }
 
-    // Editing a single entry.
-    if (isset($_POST['schedule_action']) && $_POST['schedule_action'] === 'edit_schedule') {
-        if (
-            !isset($_POST['koi_schedule_nonce_field']) ||
-            !wp_verify_nonce($_POST['koi_schedule_nonce_field'], 'koi_schedule_nonce_action')
-        ) {
-            return;
-        }
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('No permissions.', 'koi-schedule'));
-        }
+    $insert_values = [];
+    $placeholders = [];
+    $error_count = 0;
 
-        $entry_id = intval($_POST['entry_id']);
-        $streamer_id = intval($_POST['streamer_id']);
-        $date = sanitize_text_field($_POST['date']);
-        $hour = isset($_POST['hour']) ? intval($_POST['hour']) : null;
-        $minute = isset($_POST['minute']) ? intval($_POST['minute']) : null;
-        if ($hour === null || $minute === null || $hour < 0 || $hour > 23 || $minute < 0 || $minute > 59) {
-            echo '<div class="error"><p>' . esc_html__('Invalid hour or minute.', 'koi-schedule') . '</p></div>';
-            return;
-        }
-        $time = sprintf('%02d:%02d', $hour, $minute);
-        $datetime = $date . ' ' . $time;
-        $event_id = isset($_POST['event_id']) ? intval($_POST['event_id']) : null;
-        $result = $wpdb->update(
-            $schedule_table,
-            ['time' => $datetime, 'streamer_id' => $streamer_id, 'event_id' => $event_id],
-            ['id' => $entry_id],
-            ['%s', '%d', '%d'],
-            ['%d']
-        );
-
-
-        if ($result !== false) {
-            echo '<div class="updated"><p>' . esc_html__('Schedule entry updated successfully', 'koi-schedule') . '</p></div>';
+    foreach ($schedule_entries as $entry) {
+        $date = sanitize_text_field($entry['date']);
+        if ($entry['time_radio'] === 'other') {
+            $hour = intval($entry['hour']);
+            $minute = intval($entry['minute']);
+            $time = sprintf('%02d:%02d', $hour, $minute);
         } else {
-            echo '<div class="error"><p>' . esc_html__('Database error: ', 'koi-schedule') . esc_html($wpdb->last_error) . '</p></div>';
+            $time = sanitize_text_field($entry['time_radio']);
         }
+
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || !preg_match('/^\d{2}:\d{2}$/', $time)) {
+            $error_count++;
+            continue;
+        }
+
+        $event_id = isset($entry['event_id']) ? intval($entry['event_id']) : null;
+
+        array_push($insert_values, $date . ' ' . $time, $streamer_id, $event_id);
+        $placeholders[] = '(%s, %d, %d)';
     }
 
-    if (isset($_POST['schedule_action']) && $_POST['schedule_action'] === 'bulk_edit') {
-        if (
-            !isset($_POST['koi_schedule_nonce_field']) ||
-            !wp_verify_nonce($_POST['koi_schedule_nonce_field'], 'koi_schedule_nonce_action')
-        ) {
-            return;
-        }
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('No permissions.', 'koi-schedule'));
-        }
-        $ids = isset($_POST['bulk_ids']) ? array_map('intval', $_POST['bulk_ids']) : [];
-        if (!$ids) {
-            echo '<div class="error"><p>No entries selected.</p></div>';
-            return;
-        }
-        $fields = [];
-        if (!empty($_POST['bulk_streamer_id'])) {
-            $fields['streamer_id'] = intval($_POST['bulk_streamer_id']);
-        }
-        if (!empty($_POST['bulk_event_id'])) {
-            $fields['event_id'] = intval($_POST['bulk_event_id']);
-        }
-
-        $bulk_date = !empty($_POST['bulk_date']) ? sanitize_text_field($_POST['bulk_date']) : '';
-        $bulk_hour = isset($_POST['bulk_hour']) && $_POST['bulk_hour'] !== '' ? intval($_POST['bulk_hour']) : null;
-        $bulk_minute = isset($_POST['bulk_minute']) && $_POST['bulk_minute'] !== '' ? intval($_POST['bulk_minute']) : null;
-
-        if ($bulk_date !== '' || $bulk_hour !== null || $bulk_minute !== null) {
-            global $wpdb;
-            foreach ($ids as $id) {
-                $current_time = $wpdb->get_var($wpdb->prepare(
-                    "SELECT time FROM {$wpdb->prefix}koi_schedule WHERE id = %d",
-                    $id
-                ));
-                if (!$current_time) {
-                    continue;
-                }
-                $dt = new DateTime($current_time);
-
-                // Zmień datę, jeśli podano
-                if ($bulk_date !== '') {
-                    $dt->setDate(
-                        (int)substr($bulk_date, 0, 4),
-                        (int)substr($bulk_date, 5, 2),
-                        (int)substr($bulk_date, 8, 2)
-                    );
-                }
-                // Change time if provided.
-                if ($bulk_hour !== null && $bulk_minute !== null) {
-                    $dt->setTime($bulk_hour, $bulk_minute, 0);
-                }
-                $fields['time'] = $dt->format('Y-m-d H:i:s');
-                $wpdb->update($wpdb->prefix . 'koi_schedule', $fields, ['id' => $id]);
-            }
-            echo '<div class="updated"><p>Group edit finished.</p></div>';
-            return;
-        }
-
-        if ($fields) {
-            global $wpdb;
-            foreach ($ids as $id) {
-                $wpdb->update($wpdb->prefix . 'koi_schedule', $fields, ['id' => $id]);
-            }
-            echo '<div class="updated"><p>Group edit finished.</p></div>';
-        } else {
-            echo '<div class="error"><p>No changes chosen.</p></div>';
-        }
+    $success_count = 0;
+    if (!empty($insert_values)) {
+        $query = "INSERT INTO $table_name (time, streamer_id, event_id) VALUES " . implode(', ', $placeholders);
+        $success_count = $wpdb->query($wpdb->prepare($query, $insert_values));
     }
 
-    // Deleting a single entry.
-    if (isset($_POST['schedule_action']) && $_POST['schedule_action'] === 'delete_schedule') {
-        if (
-            !isset($_POST['koi_schedule_nonce_field']) ||
-            !wp_verify_nonce($_POST['koi_schedule_nonce_field'], 'koi_schedule_nonce_action')
-        ) {
-            return;
-        }
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('No permissions.', 'koi-schedule'));
-        }
-
-        $entry_id = intval($_POST['entry_id']);
-
-        $result = $wpdb->delete(
-            $schedule_table,
-            ['id' => $entry_id],
-            ['%d']
-        );
-
-        if ($result !== false) {
-            echo '<div class="updated"><p>' . esc_html__('Schedule entry deleted successfully', 'koi-schedule') . '</p></div>';
-        } else {
-            echo '<div class="error"><p>' . esc_html__('Database error: ', 'koi-schedule') . esc_html($wpdb->last_error) . '</p></div>';
-        }
+    if ($success_count > 0) {
+        echo '<div class="updated"><p>' . sprintf(esc_html__('%d entries added successfully.', 'koi-schedule'), $success_count) . '</p></div>';
+    }
+    if ($error_count > 0) {
+        echo '<div class="error"><p>' . sprintf(esc_html__('Failed to add %d entries.', 'koi-schedule'), $error_count) . '</p></div>';
     }
 }
 
-// Register the form handlers to the 'init' action hook.
-add_action('init', 'schedule_entry_form_handler');
-add_action('init', 'schedule_edit_entry_form_handler');
+/**
+ * Handles editing a single schedule entry.
+ *
+ * @return void
+ */
+function _koi_schedule_handle_single_edit(): void
+{
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'koi_schedule';
+    $entry_id = key($_POST['edit_schedule']);
+    $entry_data = $_POST['entries'][$entry_id];
+
+    $time = sprintf('%02d:%02d', intval($entry_data['hour']), intval($entry_data['minute']));
+    $datetime = sanitize_text_field($entry_data['date']) . ' ' . $time;
+
+    $result = $wpdb->update(
+        $table_name,
+        [
+            'time' => $datetime,
+            'streamer_id' => intval($entry_data['streamer_id']),
+            'event_id' => isset($entry_data['event_id']) ? intval($entry_data['event_id']) : null
+        ],
+        ['id' => $entry_id],
+        ['%s', '%d', '%d'],
+        ['%d']
+    );
+
+    if ($result !== false) {
+        echo '<div class="updated"><p>' . esc_html__('Schedule entry updated successfully.', 'koi-schedule') . '</p></div>';
+    } else {
+        echo '<div class="error"><p>' . esc_html__('Failed to update entry.', 'koi-schedule') . ' ' . esc_html($wpdb->last_error) . '</p></div>';
+    }
+}
+
+/**
+ * Handles deleting a single schedule entry.
+ *
+ * @return void
+ */
+function _koi_schedule_handle_single_delete(): void
+{
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'koi_schedule';
+    $entry_id = key($_POST['delete_schedule']);
+
+    $result = $wpdb->delete($table_name, ['id' => $entry_id], ['%d']);
+
+    if ($result) {
+        echo '<div class="updated"><p>' . esc_html__('Schedule entry deleted successfully.', 'koi-schedule') . '</p></div>';
+    } else {
+        echo '<div class="error"><p>' . esc_html__('Failed to delete entry.', 'koi-schedule') . ' ' . esc_html($wpdb->last_error) . '</p></div>';
+    }
+}
+
+/**
+ * Handles bulk editing schedule entries.
+ *
+ * @return void
+ */
+function _koi_schedule_handle_bulk_edit(): void
+{
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'koi_schedule';
+    $ids = isset($_POST['bulk_ids']) ? array_map('intval', $_POST['bulk_ids']) : [];
+
+    if (empty($ids)) {
+        echo '<div class="error"><p>' . esc_html__('No entries selected for bulk edit.', 'koi-schedule') . '</p></div>';
+        return;
+    }
+
+    $ids_placeholder = implode(', ', $ids);
+    $update_fields = [];
+    $update_formats = [];
+
+    if (!empty($_POST['bulk_streamer_id'])) {
+        $update_fields['streamer_id'] = intval($_POST['bulk_streamer_id']);
+    }
+    if (!empty($_POST['bulk_event_id'])) {
+        $update_fields['event_id'] = intval($_POST['bulk_event_id']);
+    }
+
+    $bulk_date = !empty($_POST['bulk_date']) ? sanitize_text_field($_POST['bulk_date']) : '';
+    $bulk_hour = isset($_POST['bulk_hour']) && $_POST['bulk_hour'] !== '' ? intval($_POST['bulk_hour']) : null;
+    $bulk_minute = isset($_POST['bulk_minute']) && $_POST['bulk_minute'] !== '' ? intval($_POST['bulk_minute']) : null;
+    $is_time_update = ($bulk_date || $bulk_hour !== null || $bulk_minute !== null);
+
+    if (empty($update_fields) && !$is_time_update) {
+        echo '<div class="error"><p>' . esc_html__('No changes were selected for the bulk edit.', 'koi-schedule') . '</p></div>';
+        return;
+    }
+
+    $set_clauses = [];
+    $query_params = [];
+
+    foreach ($update_fields as $field => $value) {
+        $set_clauses[] = "$field = %d";
+        $query_params[] = $value;
+    }
+
+    if ($is_time_update) {
+        $ids_placeholder_for_select = implode(', ', array_fill(0, count($ids), '%d'));
+        $entries_to_update = $wpdb->get_results($wpdb->prepare("SELECT id, time FROM $table_name WHERE id IN ($ids_placeholder_for_select)", $ids));
+
+        $time_case_sql = "time = CASE id ";
+        foreach ($entries_to_update as $entry) {
+            $dt = new DateTime($entry->time);
+            if ($bulk_date) {
+                $dt->setDate((int)substr($bulk_date, 0, 4), (int)substr($bulk_date, 5, 2), (int)substr($bulk_date, 8, 2));
+            }
+            if ($bulk_hour !== null && $bulk_minute !== null) {
+                $dt->setTime($bulk_hour, $bulk_minute);
+            }
+            $time_case_sql .= $wpdb->prepare("WHEN %d THEN %s ", $entry->id, $dt->format('Y-m-d H:i:s'));
+        }
+        $time_case_sql .= "END";
+        $set_clauses[] = $time_case_sql;
+    }
+
+    $sql = "UPDATE $table_name SET " . implode(', ', $set_clauses) . " WHERE id IN ($ids_placeholder)";
+    $result = $wpdb->query($wpdb->prepare($sql, $query_params));
+
+    if ($result !== false) {
+        echo '<div class="updated"><p>' . sprintf(esc_html__('Bulk edit complete. %d entries updated.', 'koi-schedule'), $result) . '</p></div>';
+    } else {
+        echo '<div class="error"><p>' . esc_html__('An error occurred during the bulk edit.', 'koi-schedule') . ' ' . esc_html($wpdb->last_error) . '</p></div>';
+    }
+}
+
+
+/**
+ * Handles bulk deleting entries older or newer than a specific date.
+ *
+ * @return void
+ */
+function _koi_schedule_handle_bulk_delete(): void
+{
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'koi_schedule';
+    $delete_date = sanitize_text_field($_POST['delete_older_date']);
+    $direction = $_POST['delete_direction'] ?? 'older';
+
+    if (empty($delete_date) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $delete_date)) {
+        echo '<div class="error"><p>' . esc_html__('Please select a valid date for bulk deletion.', 'koi-schedule') . '</p></div>';
+        return;
+    }
+
+    $operator = ($direction === 'newer') ? '>' : '<';
+    $datetime = $delete_date . ' 00:00:00';
+    $result = $wpdb->query($wpdb->prepare("DELETE FROM $table_name WHERE time $operator %s", $datetime));
+
+    if ($result !== false) {
+        $message = ($direction === 'newer')
+            ? sprintf(esc_html__('Successfully deleted %d entries newer than %s.', 'koi-schedule'), $result, $delete_date)
+            : sprintf(esc_html__('Successfully deleted %d entries older than %s.', 'koi-schedule'), $result, $delete_date);
+        echo '<div class="updated"><p>' . $message . '</p></div>';
+    } else {
+        echo '<div class="error"><p>' . esc_html__('Failed to delete entries.', 'koi-schedule') . ' ' . esc_html($wpdb->last_error) . '</p></div>';
+    }
+}
+
+/**
+ * Handles the AJAX request to delete a schedule event.
+ *
+ * @return void
+ */
+function koi_schedule_delete_ajax_handler(): void
+{
+    check_ajax_referer('koi_delete_schedule_nonce');
+
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => __('You do not have permission to perform this action.', 'koi-schedule')]);
+    }
+
+    $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+    if ($id <= 0) {
+        wp_send_json_error(['message' => __('Invalid entry ID provided.', 'koi-schedule')]);
+    }
+
+    global $wpdb;
+    $schedule_table = $wpdb->prefix . 'koi_schedule';
+
+    $deleted = $wpdb->delete($schedule_table, ['id' => $id], ['%d']);
+
+    if ($deleted === false) {
+        wp_send_json_error(['message' => __('Failed to delete the entry from the database.', 'koi-schedule')]);
+    } else {
+        wp_send_json_success(['message' => __('Entry deleted successfully.', 'koi-schedule')]);
+    }
+}
+// Register the AJAX handler for deleting schedule events.
+add_action('wp_ajax_koi_delete_schedule_event', 'koi_schedule_delete_ajax_handler');
+
+// Register the form handler to the 'admin_init' action hook.
+add_action('admin_init', 'koi_schedule_form_handler');
