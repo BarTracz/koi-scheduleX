@@ -188,7 +188,7 @@ function display_schedule(): false|string
     $subathons_table = $wpdb->prefix . 'koi_subathons';
     $subathons = $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT s.id, s.streamer_id, st.name AS streamer_name, s.start_date, s.timer_link, s.goals_link
+            "SELECT s.id, s.streamer_id, st.name AS streamer_name, st.link as streamer_link, s.start_date, s.timer_link, s.goals_link
          FROM {$subathons_table} s
          INNER JOIN {$streamers_table} st ON s.streamer_id = st.id
          WHERE DATE(s.start_date) <= %s
@@ -201,7 +201,7 @@ function display_schedule(): false|string
         echo '<div class="koi-subathons-list">';
         echo '<h2>Subathony</h2>';
         foreach ($subathons as $subathon) {
-            echo '<p>' . esc_html($subathon->streamer_name) . '</p>';
+            echo '<p><a href="' . esc_url($subathon->streamer_link) . '" target="_blank">' . esc_html($subathon->streamer_name) . '</a></p>';
             echo '<p>' . esc_html(date('Y.m.d', strtotime($subathon->start_date))) . ' ' . esc_html(date('H:i', strtotime($subathon->start_date))) . '</p>';
             if (!empty($subathon->timer_link)) {
                 echo '<iframe src="' . esc_url($subathon->timer_link) . '" width="400" height="50" frameborder="0" allowfullscreen></iframe>';
