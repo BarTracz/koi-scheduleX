@@ -41,9 +41,13 @@ function koi_subathons_form_handler(): void
             'streamer_id' => intval($_POST['streamer_id']),
             'timer_link' => esc_url_raw($_POST['timer_link']),
             'goals_link' => esc_url_raw($_POST['goals_link']),
+            'timer_link_mobile' => esc_url_raw($_POST['timer_link_mobile']),
+            'goals_link_mobile' => esc_url_raw($_POST['goals_link_mobile']),
             'start_date' => $start_date
         ], [
             '%d',
+            '%s',
+            '%s',
             '%s',
             '%s',
             '%s'
@@ -94,10 +98,12 @@ function koi_subathons_edit_form_handler(): void
                 'streamer_id' => intval($_POST['streamer_id']),
                 'timer_link' => esc_url_raw($_POST['timer_link']),
                 'goals_link' => esc_url_raw($_POST['goals_link']),
+                'timer_link_mobile' => esc_url_raw($_POST['timer_link_mobile']),
+                'goals_link_mobile' => esc_url_raw($_POST['goals_link_mobile']),
                 'start_date' => $start_date,
             ],
             ['id' => $subathon_id],
-            ['%d', '%s', '%s', '%s'],
+            ['%d', '%s', '%s', '%s', '%s', '%s'],
             ['%d']
         );
 

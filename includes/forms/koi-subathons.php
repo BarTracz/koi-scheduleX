@@ -45,6 +45,18 @@ function subathons_entry_form(): false|string
 				<td><input type="url" id="goals_link" name="goals_link"></td>
 			</tr>
             <tr>
+                <th>Mobile Timer Link</th>
+            </tr>
+            <tr>
+                <td><input type="url" id="timer_link_mobile" name="timer_link_mobile" required></td>
+            </tr>
+            <tr>
+                <th>Mobile Goals Link</th>
+            </tr>
+            <tr>
+                <td><input type="url" id="goals_link_mobile" name="goals_link_mobile"></td>
+            </tr>
+            <tr>
                 <th>Start Date</th>
             </tr>
             <tr>
@@ -90,7 +102,7 @@ function subathons_edit_entry_form(): void
     $total_items = $wpdb->get_var("SELECT COUNT(*) FROM $subathons_table");
 
     $subathons = $wpdb->get_results($wpdb->prepare("
-		SELECT id, streamer_id, timer_link, goals_link, start_date, created_at
+		SELECT id, streamer_id, timer_link, goals_link, timer_link_mobile, goals_link_mobile, start_date, created_at
 		FROM $subathons_table
 		LIMIT %d OFFSET %d
 	", $items_per_page, $offset));
@@ -100,7 +112,7 @@ function subathons_edit_entry_form(): void
 
     if ($subathons) {
         echo '<table class="wp-list-table widefat striped">';
-        echo '<thead><tr><th>Streamer</th><th>Timer Link</th><th>Goals Link</th><th>Start Date</th><th>Start Time</th><th>Actions</th></tr></thead>';
+        echo '<thead><tr><th>Streamer</th><th>Timer Link</th><th>Goals Link</th><th>Mobile Timer Link</th><th>Mobile Goals Link</th><th>Start Date</th><th>Start Time</th><th>Actions</th></tr></thead>';
         echo '<tbody>';
         foreach ($subathons as $subathon) {
             echo '<tr>';
@@ -115,7 +127,9 @@ function subathons_edit_entry_form(): void
             echo '</select>';
             echo '</td>';
             echo '<td><input type="url" name="timer_link" value="' . esc_url($subathon->timer_link) . '" required></td>';
-            echo '<td><input type="url" name="goals_link" value="' . esc_url($subathon->goals_link) . '"></td>';
+            echo '<td><input type="url" name="goals_link" value="' . esc_url($subathon->goals_link) . '" required></td>';
+            echo '<td><input type="url" name="timer_link_mobile" value="' . esc_url($subathon->timer_link_mobile) . '" required></td>';
+            echo '<td><input type="url" name="goals_link_mobile" value="' . esc_url($subathon->goals_link_mobile) . '" required></td>';
             echo '<td><input type="date" name="date" value="' . esc_attr(date('Y-m-d', strtotime($subathon->start_date))) . '" required></td>';
             echo '<td>
                 <input type="number" class="koi-number-field" name="hour" min="0" max="23" value="' . esc_attr(date('H', strtotime($subathon->start_date))) . '" required placeholder="hh">

@@ -188,7 +188,7 @@ function display_schedule(): false|string
     $subathons_table = $wpdb->prefix . 'koi_subathons';
     $subathons = $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT s.id, s.streamer_id, st.name AS streamer_name, st.link as streamer_link, s.start_date, s.timer_link, s.goals_link
+            "SELECT s.id, s.streamer_id, st.name AS streamer_name, st.link as streamer_link, s.start_date, s.timer_link, s.goals_link, s.timer_link_mobile, s.goals_link_mobile
          FROM {$subathons_table} s
          INNER JOIN {$streamers_table} st ON s.streamer_id = st.id
          WHERE DATE(s.start_date) <= %s
@@ -203,11 +203,25 @@ function display_schedule(): false|string
         foreach ($subathons as $subathon) {
             echo '<p><a href="' . esc_url($subathon->streamer_link) . '" target="_blank">' . esc_html($subathon->streamer_name) . '</a></p>';
             echo '<p>' . esc_html(date('Y.m.d', strtotime($subathon->start_date))) . ' ' . esc_html(date('H:i', strtotime($subathon->start_date))) . '</p>';
-            if (!empty($subathon->timer_link)) {
-                echo '<iframe src="' . esc_url($subathon->timer_link) . '" width="400" height="50" frameborder="0" allowfullscreen></iframe>';
-            }
-            if (!empty($subathon->goals_link)) {
-                echo '<iframe src="' . esc_url($subathon->goals_link) . '" width="600" height="100" frameborder="0" allowfullscreen></iframe>';
+
+            if (!wp_is_mobile()) {
+                echo '<div class="koi-subathon-desktop">';
+                if (! empty($subathon->timer_link)) {
+                    echo '<iframe class="iframe1" src="' . esc_url($subathon->timer_link) . '" frameborder="0" allowfullscreen></iframe>';
+                }
+                if (! empty($subathon->goals_link)) {
+                    echo '<iframe class="iframe2" src="' . esc_url($subathon->goals_link) . '" frameborder="0" allowfullscreen></iframe>';
+                }
+                echo '</div>';
+            } else {
+                echo '<div class="koi-subathon-mobile">';
+                if (! empty($subathon->timer_link_mobile)) {
+                    echo '<iframe class="iframe3" src="' . esc_url($subathon->timer_link_mobile) . '" frameborder="0" allowfullscreen></iframe>';
+                }
+                if (! empty($subathon->goals_link_mobile)) {
+                    echo '<iframe class="iframe4" src="' . esc_url($subathon->goals_link_mobile) . '" frameborder="0" allowfullscreen></iframe>';
+                }
+                echo '</div>';
             }
         }
         echo '</div>';

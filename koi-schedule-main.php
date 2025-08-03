@@ -3,7 +3,7 @@
 /**
  * Plugin Name: KoiSchedule
  * Description: A plugin to manage schedules for KoiCorp
- * Version: 1.0.0
+ * Version: 1.2.0
  * Author: KoiCorp
  */
 
@@ -54,6 +54,7 @@ register_activation_hook(__FILE__, function () {
     create_koi_schedule_table();
     update_koi_schedule_table();
     create_koi_subathons_table();
+    update_koi_subathons_table();
     create_koi_calendar_table();
     update_koi_streamers_table();
     // Flush the output buffer to prevent any direct output.

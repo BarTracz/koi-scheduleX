@@ -35,3 +35,15 @@ function create_koi_subathons_table(): void
         error_log('Database Error: ' . $wpdb->last_error);
     }
 }
+
+function update_koi_subathons_table(): void
+{
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'koi_subathons';
+
+    if ($wpdb->get_var("SHOW COLUMNS FROM $table_name LIKE 'timer_link_mobile'") === null &&
+        $wpdb->get_var("SHOW COLUMNS FROM $table_name LIKE 'goals_link_mobile'") === null) {
+        $wpdb->query("ALTER TABLE $table_name ADD COLUMN IF NOT EXISTS timer_link_mobile VARCHAR(255) NOT NULL DEFAULT ''");
+        $wpdb->query("ALTER TABLE $table_name ADD COLUMN IF NOT EXISTS goals_link_mobile VARCHAR(255) NOT NULL DEFAULT ''");
+    }
+}
