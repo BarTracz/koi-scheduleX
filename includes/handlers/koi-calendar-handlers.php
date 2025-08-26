@@ -49,6 +49,19 @@ function koi_calendar_form_handler(): void
     $year = isset($_POST['year']) ? intval($_POST['year']) : date('Y');
     $days_in_month = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 
+    // Delete existing entries for the streamer for the given month and year.
+    $first_day_of_month = date('Y-m-d', mktime(0, 0, 0, $month, 1, $year));
+    $last_day_of_month = date('Y-m-t', mktime(0, 0, 0, $month, 1, $year));
+
+    $wpdb->query(
+        $wpdb->prepare(
+            "DELETE FROM $table_name WHERE streamer_id = %d AND date BETWEEN %s AND %s",
+            $relation_id,
+            $first_day_of_month,
+            $last_day_of_month
+        )
+    );
+
     $insert_values = [];
     $placeholders = [];
     $availability = $_POST['availability'] ?? [];
@@ -77,6 +90,11 @@ function koi_calendar_form_handler(): void
             $from_min = isset($availability[$date]['from_min']) ? intval($availability[$date]['from_min']) : 0;
             $to_hour = intval($availability[$date]['to']);
             $to_min = isset($availability[$date]['to_min']) ? intval($availability[$date]['to_min']) : 0;
+
+            if ($to_hour === 24) {
+                $to_hour = 23;
+                $to_min = 59;
+            }
 
             // Skip if the start time is later than or equal to the end time.
             if ($from_hour > $to_hour || ($from_hour === $to_hour && $from_min >= $to_min)) {
