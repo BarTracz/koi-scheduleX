@@ -112,7 +112,7 @@ function display_calendar(): false|string
                     <td>
                         <input type="number" class="koi-front-number-field" name="availability[<?php echo $date; ?>][from]" min="0" max="23" value="<?php echo isset($val['from']) && !$is_unavailable ? esc_attr($val['from']) : ''; ?>" <?php disabled($is_unavailable, true); ?> placeholder="hh"> :
                         <input type="number" class="koi-front-number-field" name="availability[<?php echo $date; ?>][from_min]" min="0" max="59" value="<?php echo isset($val['from_min']) && !$is_unavailable ? esc_attr($val['from_min']) : ''; ?>" <?php disabled($is_unavailable, true); ?> placeholder="mm"> -
-                        <input type="number" class="koi-front-number-field" name="availability[<?php echo $date; ?>][to]" min="0" max="23" value="<?php echo isset($val['to']) && !$is_unavailable ? esc_attr($val['to']) : ''; ?>" <?php disabled($is_unavailable, true); ?> placeholder="hh"> :
+                        <input type="number" class="koi-front-number-field" name="availability[<?php echo $date; ?>][to]" min="0" max="24" value="<?php echo isset($val['to']) && !$is_unavailable ? esc_attr($val['to']) : ''; ?>" <?php disabled($is_unavailable, true); ?> placeholder="hh"> :
                         <input type="number" class="koi-front-number-field" name="availability[<?php echo $date; ?>][to_min]" min="0" max="59" value="<?php echo isset($val['to_min']) && !$is_unavailable ? esc_attr($val['to_min']) : ''; ?>" <?php disabled($is_unavailable, true); ?> placeholder="mm">
                     </td>
                     <td>
@@ -156,11 +156,15 @@ function display_calendar(): false|string
 
                     if (fromHourInput && !unavailableCheckbox.checked) {
                         const fromHour = parseInt(fromHourInput.value, 10);
-                        const toHour = parseInt(toHourInput.value, 10);
+                        let toHour = parseInt(toHourInput.value, 10);
                         const fromMin = parseInt(fromMinInput.value, 10) || 0;
-                        const toMin = parseInt(toMinInput.value, 10) || 0;
+                        let toMin = parseInt(toMinInput.value, 10) || 0;
 
                         if (!isNaN(fromHour) && !isNaN(toHour)) {
+                            if (toHour === 24) {
+                                toHour = 23;
+                                toMin = 59;
+                            }
                             if (fromHour > toHour || (fromHour === toHour && fromMin >= toMin)) {
                                 errorMessages.push(`For day ${row.cells[0].innerText}, the start time must be earlier than the end time.`);
                             }
