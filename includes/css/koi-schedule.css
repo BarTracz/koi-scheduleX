@@ -16,6 +16,7 @@ TABLE OF CONTENTS
 9.  Empty State Placeholders
 10. Admin-Specific Styles
 11. Responsive Design
+12. Calendar Admin Month Buttons & Streamer Status
 ==================================================
 */
 
@@ -565,4 +566,43 @@ p .button {
     .koi-schedule-week-column {
         gap: 0;
     }
+}
+
+/* ==================================================
+   12. Calendar Admin Month Buttons & Streamer Status
+   ================================================== */
+.koi-calendar-months {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+}
+.koi-calendar-month-btn {
+    min-width: 90px;
+    text-align: center;
+}
+.koi-calendar-streamer-status-wrap {
+    margin-top: 20px;
+}
+.koi-calendar-streamer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 5px;
+    margin-top: 10px;
+}
+.koi-calendar-streamer-box {
+    background: #fff;
+    border: 1px solid #eee;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    color: #222;
+}
+.koi-calendar-streamer-available {
+    color: #2ecc40;
+}
+.koi-calendar-streamer-unavailable {
+    color: #e74c3c;
 }

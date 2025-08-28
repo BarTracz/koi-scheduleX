@@ -544,8 +544,112 @@ function schedule_entry_page(): void
 {
     echo '<div class="wrap">';
     echo '<h1>Koi schedule form</h1>';
+    // CSV Import Form
+    // Handle CSV import if submitted
+    if (isset($_POST['koi_schedule_import_csv']) && isset($_FILES['koi_schedule_csv'])) {
+        koi_schedule_handle_csv_import();
+    }
     echo schedule_entry_form();
+    // CSV Import Form below the main form
+    echo '<h2>Import Schedule from CSV</h2>';
+    echo '<form method="post" enctype="multipart/form-data" style="margin-top:2em;">';
+    echo '<input type="file" name="koi_schedule_csv" accept=".csv" required> ';
+    echo '<input type="submit" name="koi_schedule_import_csv" class="button button-secondary" value="Import CSV">';
+    wp_nonce_field('koi_schedule_import_csv_action', 'koi_schedule_import_csv_nonce');
+    echo '</form>';
     echo '</div>';
+}
+
+/**
+ * Handles importing schedule records from a CSV file.
+ */
+function koi_schedule_handle_csv_import(): void
+{
+    if (!current_user_can('manage_options')) {
+        echo '<div class="error"><p>Permission denied.</p></div>';
+        return;
+    }
+    if (!isset($_POST['koi_schedule_import_csv_nonce']) || !wp_verify_nonce($_POST['koi_schedule_import_csv_nonce'], 'koi_schedule_import_csv_action')) {
+        echo '<div class="error"><p>Invalid nonce.</p></div>';
+        return;
+    }
+    if (empty($_FILES['koi_schedule_csv']['tmp_name'])) {
+        echo '<div class="error"><p>No file uploaded.</p></div>';
+        return;
+    }
+    $file = $_FILES['koi_schedule_csv']['tmp_name'];
+    $handle = fopen($file, 'r');
+    if (!$handle) {
+        echo '<div class="error"><p>Failed to open file.</p></div>';
+        return;
+    }
+    global $wpdb;
+    $streamers_table = $wpdb->prefix . 'koi_streamers';
+    $schedule_table = $wpdb->prefix . 'koi_schedule';
+    $header = fgetcsv($handle);
+    if (!$header) {
+        echo '<div class="error"><p>CSV is empty or invalid.</p></div>';
+        fclose($handle);
+        return;
+    }
+    // Map header columns
+    $col_map = array_flip($header);
+    $required = ['talent','date','start_time'];
+    foreach ($required as $col) {
+        if (!isset($col_map[$col])) {
+            echo '<div class="error"><p>Missing required column: ' . esc_html($col) . '</p></div>';
+            fclose($handle);
+            return;
+        }
+    }
+    // Build streamer name=>id map
+    $streamers = $wpdb->get_results("SELECT id, name FROM $streamers_table");
+    $streamer_map = [];
+    foreach ($streamers as $s) {
+        $streamer_map[mb_strtolower(trim($s->name))] = $s->id;
+    }
+    $inserted = 0;
+    $skipped = 0;
+    while (($row = fgetcsv($handle)) !== false) {
+        $talent = isset($row[$col_map['talent']]) ? trim($row[$col_map['talent']]) : '';
+        $date = isset($row[$col_map['date']]) ? trim($row[$col_map['date']]) : '';
+        $start_time = isset($row[$col_map['start_time']]) ? trim($row[$col_map['start_time']]) : '';
+        if ($talent === '' || $date === '' || $start_time === '') {
+            $skipped++;
+            continue;
+        }
+        $streamer_id = $streamer_map[mb_strtolower($talent)] ?? 0;
+        if (!$streamer_id) {
+            $skipped++;
+            continue;
+        }
+        // Validate date and time
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || !preg_match('/^\d{2}:\d{2}$/', $start_time)) {
+            $skipped++;
+            continue;
+        }
+        $datetime = $date . ' ' . $start_time;
+        $event_id = 1; // Default event
+        $result = $wpdb->insert($schedule_table, [
+            'time' => $datetime,
+            'streamer_id' => $streamer_id,
+            'event_id' => $event_id
+        ], [
+            '%s','%d','%d'
+        ]);
+        if ($result) {
+            $inserted++;
+        } else {
+            $skipped++;
+        }
+    }
+    fclose($handle);
+    if ($inserted > 0) {
+        echo '<div class="updated"><p>' . esc_html($inserted) . ' records imported.</p></div>';
+    }
+    if ($skipped > 0) {
+        echo '<div class="error"><p>' . esc_html($skipped) . ' rows skipped (missing/invalid data or streamer not found).</p></div>';
+    }
 }
 
 /**
