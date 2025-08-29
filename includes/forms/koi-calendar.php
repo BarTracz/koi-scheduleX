@@ -108,7 +108,9 @@ function koi_calendar_admin_page(): void
         foreach ($all_streamers as $streamer) {
             $has_entry = $wpdb->get_var($wpdb->prepare(
                 "SELECT COUNT(*) FROM $calendar_table WHERE streamer_id = %d AND available = 1 AND MONTH(date) = %d AND YEAR(date) = %d",
-                $streamer->id, $currentMonth, $currentYear
+                $streamer->id,
+                $currentMonth,
+                $currentYear
             ));
             $streamer_status[] = [
                 'name' => $streamer->name,
@@ -170,12 +172,14 @@ function koi_calendar_admin_page(): void
 
         // Streamer status below calendar as grid, no icons, show number of available days
         echo '<div class="koi-calendar-streamer-status-wrap">'
-            . '<strong>Availability status ' . esc_html(date('F Y', mktime(0,0,0,$currentMonth,1,$currentYear))) . ':</strong>'
+            . '<strong>Availability status ' . esc_html(date('F Y', mktime(0, 0, 0, $currentMonth, 1, $currentYear))) . ':</strong>'
             . '<div class="koi-calendar-streamer-grid">';
         foreach ($all_streamers as $streamer) {
             $has_entry = $wpdb->get_var($wpdb->prepare(
                 "SELECT COUNT(*) FROM $calendar_table WHERE streamer_id = %d AND available = 1 AND MONTH(date) = %d AND YEAR(date) = %d",
-                $streamer->id, $currentMonth, $currentYear
+                $streamer->id,
+                $currentMonth,
+                $currentYear
             ));
             $colorClass = $has_entry > 0 ? 'koi-calendar-streamer-available' : 'koi-calendar-streamer-unavailable';
             $daysText = $has_entry > 0 ? ' (' . intval($has_entry) . ' days)' : '';
