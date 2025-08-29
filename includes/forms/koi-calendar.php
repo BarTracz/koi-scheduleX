@@ -21,13 +21,21 @@ function koi_schedule_export_csv(): void
         $calendar_table = $wpdb->prefix . 'koi_calendar';
         $streamers_table = $wpdb->prefix . 'koi_streamers';
 
+        // Get month and year from query, or use current
+        $month = isset($_GET['calendar_month']) ? intval($_GET['calendar_month']) : intval(date('n'));
+        $year = isset($_GET['calendar_year']) ? intval($_GET['calendar_year']) : intval(date('Y'));
+
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename=koi-calendar-export-' . gmdate('Y-m-d') . '.csv');
 
         $output = fopen('php://output', 'w');
         fputcsv($output, ['Talent', 'Date', 'Start Time', 'End Time']);
 
-        $entries = $wpdb->get_results("SELECT s.name as streamer_name, c.date, c.time_from, c.time_to FROM $calendar_table c LEFT JOIN $streamers_table s ON c.streamer_id = s.id WHERE c.available = 1 ORDER BY c.date ASC, c.time_from ASC");
+        $entries = $wpdb->get_results($wpdb->prepare(
+            "SELECT s.name as streamer_name, c.date, c.time_from, c.time_to FROM $calendar_table c LEFT JOIN $streamers_table s ON c.streamer_id = s.id WHERE c.available = 1 AND MONTH(c.date) = %d AND YEAR(c.date) = %d ORDER BY c.date ASC, c.time_from ASC",
+            $month,
+            $year
+        ));
 
         if ($entries) {
             foreach ($entries as $entry) {
@@ -62,7 +70,16 @@ function koi_calendar_admin_page(): void
     $active_tab = isset($_GET['calendar_streamer_id']) ? intval($_GET['calendar_streamer_id']) : ($streamers[0]->id ?? 0);
     $show_all_tab = isset($_GET['calendar_show_all']);
 
-    echo '<div class="wrap"><h1>Calendars <a href="' . esc_url(add_query_arg(['page' => 'koi_calendar_admin', 'download_csv' => 1], admin_url('admin.php'))) . '" class="page-title-action">Export to CSV</a></h1>';
+    // Get current month and year for export link
+    $export_month = isset($_GET['calendar_month']) ? intval($_GET['calendar_month']) : intval(date('n'));
+    $export_year = isset($_GET['calendar_year']) ? intval($_GET['calendar_year']) : intval(date('Y'));
+    $export_url = add_query_arg([
+        'page' => 'koi_calendar_admin',
+        'download_csv' => 1,
+        'calendar_month' => $export_month,
+        'calendar_year' => $export_year
+    ], admin_url('admin.php'));
+    echo '<div class="wrap"><h1>Calendars <a href="' . esc_url($export_url) . '" class="page-title-action">Export to CSV</a></h1>';
     // Display tabs for each streamer and an "All entries" tab.
     echo '<h2 class="nav-tab-wrapper">';
     foreach ($streamers as $streamer) {
