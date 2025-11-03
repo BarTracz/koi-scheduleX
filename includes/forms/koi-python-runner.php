@@ -86,8 +86,41 @@ function koi_python_runner_page()
         // Check if the form was submitted and files were uploaded
         if (isset($_POST['run_python_script']) && !empty($_FILES['personalities_file']['tmp_name']) && !empty($_FILES['calendar_file']['tmp_name'])) {
             // Call the handler function, passing the uploaded files and other parameters
-            $params = array_intersect_key($_POST, array_flip(['schedule_month', 'schedule_year', 'stream_duration', 'max_concurrent_streams', 'min_streams_per_day', 'max_streams_per_streamer', 'min_streams_per_bucket', 'min_streams_per_week']));
-            $result = koi_run_python_schedule_script($_FILES['personalities_file'], $_FILES['calendar_file'], $params);
+            // Validate and sanitize parameters
+            $validated_params = array();
+            // Month: 1-12
+            if (isset($_POST['schedule_month']) && filter_var($_POST['schedule_month'], FILTER_VALIDATE_INT, ["options" => ["min_range" => 1, "max_range" => 12]]) !== false) {
+                $validated_params['schedule_month'] = (int)$_POST['schedule_month'];
+            }
+            // Year: 2020-2099
+            if (isset($_POST['schedule_year']) && filter_var($_POST['schedule_year'], FILTER_VALIDATE_INT, ["options" => ["min_range" => 2020, "max_range" => 2099]]) !== false) {
+                $validated_params['schedule_year'] = (int)$_POST['schedule_year'];
+            }
+            // stream_duration: 1-1440 (minutes in a day)
+            if (isset($_POST['stream_duration']) && filter_var($_POST['stream_duration'], FILTER_VALIDATE_INT, ["options" => ["min_range" => 1, "max_range" => 1440]]) !== false) {
+                $validated_params['stream_duration'] = (int)$_POST['stream_duration'];
+            }
+            // max_concurrent_streams: 1-100
+            if (isset($_POST['max_concurrent_streams']) && filter_var($_POST['max_concurrent_streams'], FILTER_VALIDATE_INT, ["options" => ["min_range" => 1, "max_range" => 100]]) !== false) {
+                $validated_params['max_concurrent_streams'] = (int)$_POST['max_concurrent_streams'];
+            }
+            // min_streams_per_day: 0-100
+            if (isset($_POST['min_streams_per_day']) && filter_var($_POST['min_streams_per_day'], FILTER_VALIDATE_INT, ["options" => ["min_range" => 0, "max_range" => 100]]) !== false) {
+                $validated_params['min_streams_per_day'] = (int)$_POST['min_streams_per_day'];
+            }
+            // max_streams_per_streamer: 1-100
+            if (isset($_POST['max_streams_per_streamer']) && filter_var($_POST['max_streams_per_streamer'], FILTER_VALIDATE_INT, ["options" => ["min_range" => 1, "max_range" => 100]]) !== false) {
+                $validated_params['max_streams_per_streamer'] = (int)$_POST['max_streams_per_streamer'];
+            }
+            // min_streams_per_bucket: 0-100
+            if (isset($_POST['min_streams_per_bucket']) && filter_var($_POST['min_streams_per_bucket'], FILTER_VALIDATE_INT, ["options" => ["min_range" => 0, "max_range" => 100]]) !== false) {
+                $validated_params['min_streams_per_bucket'] = (int)$_POST['min_streams_per_bucket'];
+            }
+            // min_streams_per_week: 0-100
+            if (isset($_POST['min_streams_per_week']) && filter_var($_POST['min_streams_per_week'], FILTER_VALIDATE_INT, ["options" => ["min_range" => 0, "max_range" => 100]]) !== false) {
+                $validated_params['min_streams_per_week'] = (int)$_POST['min_streams_per_week'];
+            }
+            $result = koi_run_python_schedule_script($_FILES['personalities_file'], $_FILES['calendar_file'], $validated_params);
 
             echo '<h2>Script Output:</h2>';
             echo '<pre>' . esc_textarea($result['output']) . '</pre>';
