@@ -143,3 +143,49 @@ function koi_run_python_schedule_script($personalities_file, $calendar_file, $pa
 
     return $result;
 }
+
+/**
+ * Handles the secure download of a generated schedule file.
+ *
+ * This function checks for user permissions and a valid nonce before
+ * streaming the file, preventing direct access to files in the protected
+ * upload directory.
+ *
+ * @return void
+ */
+function koi_handle_schedule_download()
+{
+    // 1. Security Checks
+    if (!isset($_GET['_wpnonce']) || !wp_verify_nonce($_GET['_wpnonce'], 'koi_download_schedule_nonce')) {
+        wp_die('Security check failed.');
+    }
+
+    if (!current_user_can('manage_options')) {
+        wp_die('You do not have permission to download this file.');
+    }
+
+    // 2. File Validation
+    if (empty($_GET['file'])) {
+        wp_die('No file specified.');
+    }
+
+    $upload_dir = wp_upload_dir();
+    $koi_dir = $upload_dir['basedir'] . '/koi-schedule-files';
+
+    // Sanitize filename to prevent directory traversal
+    $filename = basename(urldecode($_GET['file']));
+    $filepath = $koi_dir . '/' . $filename;
+
+    if (!file_exists($filepath)) {
+        wp_die('File not found.');
+    }
+
+    // 3. Serve the file
+    header('Content-Description: File Transfer');
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Content-Length: ' . filesize($filepath));
+    readfile($filepath);
+    exit;
+}
+add_action('admin_post_koi_download_schedule', 'koi_handle_schedule_download');
