@@ -83,6 +83,13 @@ function koi_run_python_schedule_script($personalities_file, $calendar_file, $pa
     // Ensure the main script exists
     if (!file_exists($script_path)) {
         $result['output'] = "Error: The main Python script was not found.";
+        // Clean up uploaded temp files before returning early
+        if (file_exists($personalities_path)) {
+            unlink($personalities_path);
+        }
+        if (file_exists($calendar_path)) {
+            unlink($calendar_path);
+        }
         return $result;
     }
 
