@@ -65,7 +65,8 @@ SCHEDULABLE_SLOTS = [12, 15, 20, 10, 18]
 personalities = {}
 availability = defaultdict(dict)
 schedule = defaultdict(list)
-quota_stats = defaultdict(lambda: defaultdict(int)) 
+quota_stats = defaultdict(lambda: defaultdict(int))
+parsing_warnings = []
 
 
 # --- Helper Functions ---
@@ -74,14 +75,18 @@ def load_personalities():
     try:
         with open(PERSONALITIES_FILE, 'r', encoding='utf-8') as f:
             reader = csv.reader(f)
-            for row in reader:
-                if row: # Check if the row is not empty
-                    try:
-                        name, p_type = row[0], row[1]
-                        personalities[name.strip()] = int(p_type.strip())
-                    except (ValueError, IndexError):
-                        pass # Silently skip invalid lines
+            for i, row in enumerate(reader, 1):
+                if not row:
+                    parsing_warnings.append(f"Personalities file, line {i}: Skipped empty row.")
+                    continue
+                try:
+                    name, p_type = row[0], row[1]
+                    personalities[name.strip()] = int(p_type.strip())
+                except (ValueError, IndexError):
+                    parsing_warnings.append(f"Personalities file, line {i}: Skipped invalid row -> {','.join(row)}")
     except FileNotFoundError:
+        # Use print for critical errors that should stop execution or be immediately visible
+        print(f"CRITICAL ERROR: Personalities file not found at {PERSONALITIES_FILE}")
         return False
     return True
 
@@ -89,8 +94,16 @@ def load_availability():
     try:
         with open(CALENDAR_FILE, 'r', encoding='utf-8') as f:
             reader = csv.reader(f)
-            next(reader)  # Skip header
-            for row in reader:
+            try:
+                next(reader)  # Skip header
+            except StopIteration:
+                parsing_warnings.append("Calendar file: File is empty or contains only a header.")
+                return True # Not a fatal error, just no data
+
+            for i, row in enumerate(reader, 2): # Start from line 2
+                if not row or len(row) < 4:
+                    parsing_warnings.append(f"Calendar file, line {i}: Skipped malformed row (not enough columns) -> {','.join(row)}")
+                    continue
                 try:
                     talent, date_str, start_str, end_str = row[0], row[1], row[2], row[3]
                     date_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
@@ -100,8 +113,9 @@ def load_availability():
                     end_h = int(end_str.split(':')[0])
                     availability[talent][date_obj] = (start_h, end_h)
                 except (ValueError, IndexError):
-                    pass # Silently skip invalid lines
+                    parsing_warnings.append(f"Calendar file, line {i}: Skipped invalid row -> {','.join(row)}")
     except FileNotFoundError:
+        print(f"CRITICAL ERROR: Calendar file not found at {CALENDAR_FILE}")
         return False
     return True
 
@@ -165,7 +179,13 @@ def add_stream(streamer, day, slot_start):
 def create_schedule():
     
     if not load_personalities() or not load_availability():
+        # The load functions will print critical file not found errors.
         return
+
+    if parsing_warnings:
+        print("--- Input File Warnings ---")
+        for warning in parsing_warnings:
+            print(warning)
 
     streamers = list(personalities.keys())
     random.shuffle(streamers) 

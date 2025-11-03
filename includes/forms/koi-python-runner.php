@@ -9,6 +9,7 @@ function koi_python_runner_page()
         
         <form method="post" action="" enctype="multipart/form-data">
             <input type="hidden" name="run_python_script" value="1">
+            <?php wp_nonce_field('run_python_script_action', 'run_python_script_nonce'); ?>
             
             <h2>1. Upload Files</h2>
             <table class="form-table">
@@ -73,7 +74,7 @@ function koi_python_runner_page()
                 </tr>
                 <tr valign="top">
                     <th scope="row"><label for="min_streams_per_week">Min streams per week</label></th>
-                    <td><input type="number" name="min_streams_per_week" id="min_streams_per_week" value="2" min="0" required>
+                    <td><input type="number" name="min_streams_per_week" id="min_streams_per_week" value="0" min="0" required>
                         <p class="description">The minimum number of streams each streamer should have in each week of the month. Set to 0 to disable.</p></td>
                 </tr>
             </table>
@@ -94,7 +95,7 @@ function koi_python_runner_page()
             // If the script was successful, show the download link
             if ($result['success']) {
                 echo '<h2>Download Schedule</h2>';
-                echo '<p><a href="' . esc_url($result['download_url']) . '" class="button button-primary">Download harmonogram.csv</a></p>';
+                echo '<p><a href="' . esc_url($result['download_url']) . '" class="button button-primary" download>Download Generated Schedule</a></p>';
             }
         } elseif (isset($_POST['run_python_script'])) {
             echo '<div class="error"><p>Please select both files before running the script.</p></div>';
