@@ -95,7 +95,7 @@ function koi_run_python_schedule_script($personalities_file, $calendar_file, $pa
 
     // Construct the command with arguments
     $command_parts = [
-        escapeshellcmd($python_executable),
+        $python_executable,
         escapeshellarg($script_path),
         '--personalities', escapeshellarg($personalities_path),
         '--calendar', escapeshellarg($calendar_path),
