@@ -190,7 +190,9 @@ function koi_handle_schedule_download()
     // 3. Serve the file
     header('Content-Description: File Transfer');
     header('Content-Type: text/csv');
-    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    // Escape single quotes in filename and wrap in single quotes to prevent header injection
+    $safe_filename = str_replace("'", "'\\''", $filename);
+    header("Content-Disposition: attachment; filename='" . $safe_filename . "'");
     header('Content-Length: ' . filesize($filepath));
     readfile($filepath);
     exit;
