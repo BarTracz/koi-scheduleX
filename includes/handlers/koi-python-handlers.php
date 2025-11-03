@@ -27,29 +27,28 @@ function koi_run_python_schedule_script($personalities_file, $calendar_file, $pa
     // WordPress upload overrides
     $upload_overrides = [
         'test_form' => false,
-        'mimes'     => ['csv' => 'text/csv'],
+        'mimes'     => [
+            'csv' => 'text/csv',
+            'csv' => 'application/csv',
+            'csv' => 'text/plain',
+            'csv' => 'text/comma-separated-values',
+        ],
     ];
 
     // Get upload directory information
     $upload_dir = wp_upload_dir();
     $koi_dir = $upload_dir['basedir'] . '/koi-schedule-files';
 
+    // Create the directory if it doesn't exist
+    wp_mkdir_p($koi_dir);
+
     // Secure the upload directory with an index.php and .htaccess file
     if (!file_exists($koi_dir . '/index.php')) {
-        if (!is_dir($koi_dir)) {
-            wp_mkdir_p($koi_dir);
-        }
         file_put_contents($koi_dir . '/index.php', '<?php // Silence is golden.');
     }
     if (!file_exists($koi_dir . '/.htaccess')) {
-        if (!is_dir($koi_dir)) {
-            wp_mkdir_p($koi_dir);
-        }
         file_put_contents($koi_dir . '/.htaccess', 'deny from all');
     }
-
-    wp_mkdir_p($koi_dir); // Create the directory if it doesn't exist
-
     // Move personalities file
     $personalities_file_info = wp_handle_upload($personalities_file, $upload_overrides);
     if (empty($personalities_file_info['file'])) {
