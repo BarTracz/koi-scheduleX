@@ -41,9 +41,25 @@ require_once KOI_SCHEDULE_PATH . 'includes/handlers/koi-events-handlers.php';
 require_once KOI_SCHEDULE_PATH . 'includes/handlers/koi-schedule-handlers.php';
 require_once KOI_SCHEDULE_PATH . 'includes/handlers/koi-subathons-handlers.php';
 require_once KOI_SCHEDULE_PATH . 'includes/handlers/koi-calendar-handlers.php';
+require_once KOI_SCHEDULE_PATH . 'includes/handlers/koi-python-handlers.php';
+
+require_once KOI_SCHEDULE_PATH . 'includes/forms/koi-python-runner.php';
 
 require_once KOI_SCHEDULE_PATH . 'includes/front-display/koi-schedule-front-display.php';
 require_once KOI_SCHEDULE_PATH . 'includes/front-display/koi-calendar-front-display.php';
+
+// Add admin menu page for the Python script runner
+add_action('admin_menu', function () {
+    add_menu_page(
+        'Python Runner',
+        'Python Runner',
+        'manage_options',
+        'koi-python-runner',
+        'koi_python_runner_page',
+        'dashicons-controls-play',
+        20
+    );
+});
 
 register_activation_hook(__FILE__, function () {
     // Object buffer to prevent direct output during activation.
