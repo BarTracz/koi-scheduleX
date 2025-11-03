@@ -10,10 +10,10 @@ function koi_run_python_schedule_script($personalities_file, $calendar_file, $pa
     ];
 
     // --- 1. Handle File Uploads ---
-    
+
     // WordPress upload overrides
     $upload_overrides = ['test_form' => false];
-    
+
     // Get upload directory information
     $upload_dir = wp_upload_dir();
     $koi_dir = $upload_dir['basedir'] . '/koi-schedule-files';
@@ -77,7 +77,7 @@ function koi_run_python_schedule_script($personalities_file, $calendar_file, $pa
     $command = implode(' ', $command_parts);
 
     // --- 3. Execute the Script ---
-    
+
     $descriptorspec = [
        1 => ['pipe', 'w'], // stdout
        2 => ['pipe', 'w']  // stderr

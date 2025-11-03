@@ -87,7 +87,7 @@ function koi_python_runner_page()
             // Call the handler function, passing the uploaded files and other parameters
             $params = array_intersect_key($_POST, array_flip(['schedule_month', 'schedule_year', 'stream_duration', 'max_concurrent_streams', 'min_streams_per_day', 'max_streams_per_streamer', 'min_streams_per_bucket', 'min_streams_per_week']));
             $result = koi_run_python_schedule_script($_FILES['personalities_file'], $_FILES['calendar_file'], $params);
-            
+
             echo '<h2>Script Output:</h2>';
             echo '<pre>' . esc_textarea($result['output']) . '</pre>';
 
@@ -99,7 +99,7 @@ function koi_python_runner_page()
         } elseif (isset($_POST['run_python_script'])) {
             echo '<div class="error"><p>Please select both files before running the script.</p></div>';
         }
-        ?>
+    ?>
     </div>
     <?php
 }

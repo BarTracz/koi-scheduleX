@@ -2,6 +2,8 @@
   "name": "bartracz/koi-schedule",
   "description": "Plugin WordPress koi-schedule",
   "type": "project",
-  "require": {},
-  "license": "MIT"
+  "license": "MIT",
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.89"
+  }
 }
