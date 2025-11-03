@@ -74,7 +74,6 @@ function koi_run_python_schedule_script($personalities_file, $calendar_file, $pa
     $base_filename = 'harmonogram-' . date('Y-m-d') . '.csv';
     $output_filename = wp_unique_filename($koi_dir, $base_filename);
     $output_path = $koi_dir . '/' . $output_filename;
-    $output_url = $upload_dir['baseurl'] . '/koi-schedule-files/' . $output_filename;
 
     // IMPORTANT: For better security and reliability, use the full, absolute path to your Python executable.
     $python_executable = 'python'; // e.g., 'C:\\Python39\\python.exe'
@@ -163,7 +162,7 @@ function koi_run_python_schedule_script($personalities_file, $calendar_file, $pa
 function koi_handle_schedule_download()
 {
     // 1. Security Checks
-    if (!isset($_GET['_wpnonce']) || !wp_verify_nonce($_GET['_wpnonce'], 'koi_download_schedule_nonce')) {
+    if (!isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field($_GET['_wpnonce']), 'koi_download_schedule_nonce')) {
         wp_die('Security check failed.');
     }
 
@@ -180,7 +179,7 @@ function koi_handle_schedule_download()
     $koi_dir = $upload_dir['basedir'] . '/koi-schedule-files';
 
     // Sanitize filename to prevent directory traversal
-    $filename = basename(urldecode($_GET['file']));
+    $filename = sanitize_file_name(basename(urldecode($_GET['file'])));
     $filepath = $koi_dir . '/' . $filename;
 
     if (!file_exists($filepath)) {

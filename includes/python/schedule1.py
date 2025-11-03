@@ -33,7 +33,7 @@ MIN_STREAMS_PER_DAY = args.min_streams_per_day
 TARGET_AND_MAX_STREAMS = args.max_streams_per_streamer
 MIN_STREAMS_PER_BUCKET = args.min_streams_per_bucket
 MIN_STREAMS_PER_WEEK = args.min_streams_per_week
- 
+
 if MONTH == 12:
     FIRST_DAY_NEXT_MONTH = datetime.date(YEAR + 1, 1, 1)
 else:
