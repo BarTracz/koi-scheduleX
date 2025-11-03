@@ -128,8 +128,12 @@ function koi_python_runner_page()
             // If the script was successful, show the download link
             if ($result['success']) {
                 echo '<h2>Download Schedule</h2>';
-                $download_url = admin_url('admin-post.php?action=koi_download_schedule&file=' . urlencode($result['output_filename']) . '&_wpnonce=' . wp_create_nonce('koi_download_schedule_nonce'));
-                echo '<p><a href="' . esc_url($download_url) . '" class="button button-primary">Download Generated Schedule</a></p>';
+                $download_url = add_query_arg([
+                    'action'   => 'koi_download_schedule',
+                    'file'     => urlencode($result['output_filename']),
+                    '_wpnonce' => wp_create_nonce('koi_download_schedule_nonce'),
+                ], admin_url('admin-post.php'));
+                echo '<p><a href="' . esc_url($download_url) . '" class="button button-primary" download>Download Generated Schedule</a></p>';
             }
         } elseif (isset($_POST['run_python_script'])) {
             echo '<div class="error"><p>Please select both files before running the script.</p></div>';

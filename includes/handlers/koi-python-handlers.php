@@ -136,7 +136,7 @@ function koi_run_python_schedule_script($personalities_file, $calendar_file, $pa
         if ($return_value === 0) {
             $result['success'] = true;
             $result['output'] = "Script executed successfully:\n\n" . $stdout;
-            $result['download_url'] = $output_url;
+            $result['output_filename'] = $output_filename; // Add the filename to the result
         } else {
             $result['output'] = "Error executing script (return code: $return_value):\n\n" . $stderr;
         }
@@ -190,9 +190,9 @@ function koi_handle_schedule_download()
     // 3. Serve the file
     header('Content-Description: File Transfer');
     header('Content-Type: text/csv');
-    // Escape single quotes in filename and wrap in single quotes to prevent header injection
-    $safe_filename = str_replace("'", "'\\''", $filename);
-    header("Content-Disposition: attachment; filename='" . $safe_filename . "'");
+    // Use double quotes for the filename as per RFC 6266 and escape any double quotes within the name.
+    $safe_filename = str_replace('"', '\\"', $filename);
+    header('Content-Disposition: attachment; filename="' . $safe_filename . '"');
     header('Content-Length: ' . filesize($filepath));
     readfile($filepath);
     exit;
