@@ -27,7 +27,12 @@ function koi_run_python_schedule_script($personalities_file, $calendar_file, $pa
     // WordPress upload overrides
     $upload_overrides = [
         'test_form' => false,
-        'mimes'     => ['csv' => 'text/csv'],
+        'mimes'     => [
+            'csv' => 'text/csv',
+            'csv' => 'application/csv',
+            'csv' => 'text/plain',
+            'csv' => 'text/comma-separated-values',
+        ],
     ];
 
     // Get upload directory information
